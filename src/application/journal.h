@@ -1,3 +1,6 @@
+#include "./../../src/platform/platform.h"
+
+/*
 struct Record{
   Time time;
   char user[16];
@@ -11,4 +14,4 @@ void printRecord(Record record);
 void writeRecord(Record record, uint32_t log_number);
 
 void printJournal();
-void cleanJournal(void);
+void cleanJournal(void);*/
