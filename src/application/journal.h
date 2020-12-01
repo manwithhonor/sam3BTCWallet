@@ -1,4 +1,3 @@
-/*
 struct Record{
   Time time;
   char user[16];
@@ -13,4 +12,3 @@ void writeRecord(Record record, uint32_t log_number);
 
 void printJournal();
 void cleanJournal(void);
-*/
