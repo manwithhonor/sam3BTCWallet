@@ -1,6 +1,6 @@
 #include "./../../src/platform/platform.h"
 #include "./../../src/DueFlashStorage/DueFlashStorage.h"
-// #include <rtc_clock.h>
+#include "./../../src/rtc_clock/rtc_clock.h"
 
 // RTC_clock rtc_clock(RC); // Select the Slowclock source
 // DueFlashStorage dueFlashStorage;
