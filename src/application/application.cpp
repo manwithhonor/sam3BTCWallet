@@ -1,31 +1,17 @@
 #include "crypto.h"
 #include "journal.h"
+#include "application.h"
 #include "./../platform/platform.h"
 
-/*
+
 enum apiCommand {
   create_master_key,
   get_list_of_child_pubkeys,
   sign_transaction,
   get_journal
 };
-*/
 
-/*
-HDPrivateKey hd;
-HDPrivateKey hd2;
-HDPublicKey hd_pub;
-PrivateKey child_private_key;
-PublicKey child_public_key;
-Signature signature;
-char mySeed[64] = { 0 }; 
-char* myKey = "test sfgadfhagsgh" ;
-String message = "Hello, Roman!";
-byte hash[64] = { 0 }; // hash
-uint32_t event_number = 0;  //value that shows where is the last record in storage
-bool storage_is_full = false; //if this variable is false you can make operations, if true - you can not
-uint16_t long_numer = 0;      //256 - digital number to generate private master key "010011101010..."
-*/
+
 
 /*
 std::pair<int, std::string> parseCommand(std::string cmd) {

@@ -3,7 +3,7 @@
 #include "rtc_clock.h"
 
 RTC_clock rtc_clock(RC); // Select the Slowclock source
-// DueFlashStorage dueFlashStorage;
+DueFlashStorage dueFlashStorage;
 
 namespace platfrom {
     namespace clocks {
@@ -34,18 +34,22 @@ namespace platfrom {
 
         }
 
-        int log(std::string) {
-
+        int log(std::string message) {
+          //  Serial.println(message);
         }
     }
 
     namespace persistent {
-        int read(__UINT32_TYPE__ addr, __UINT8_TYPE__ *dst, __UINT32_TYPE__ len) {
-
+        byte* read(uint32_t address) {
+            // DueFlashStorage dueFlashStorage;
+            return dueFlashStorage.readAddress(address);
+            // return 0 ;
         }
 
-        int write(__UINT32_TYPE__ addr, __UINT8_TYPE__ *src, __UINT32_TYPE__ len) {
-
+        int write(uint32_t address, byte *data, uint32_t dataLength) {
+            // DueFlashStorage dueFlashStorage;
+            dueFlashStorage.write(address, data, dataLength);
+            return 0 ;
         }
     }
 }

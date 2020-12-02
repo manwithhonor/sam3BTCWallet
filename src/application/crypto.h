@@ -10,7 +10,7 @@ namespace crypto {
     }
 }
 
-/*
+
 int getHash(String transaction, byte* hash, int hashlen);
 
 HDPublicKey getMasterPublicKey(HDPrivateKey hd);
@@ -22,4 +22,3 @@ void write_master_key2(byte *seed);
 void print_master_key2();
 void write_master_key(char * key);
 void print_master_key();
-*/

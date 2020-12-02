@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include "./../bitcoin/Bitcoin.h"
+
 
 namespace platfrom {
     class string {
@@ -27,7 +29,7 @@ namespace platfrom {
     }
 
     namespace persistent {
-        int read(__UINT32_TYPE__ addr, __UINT8_TYPE__ *dst, __UINT32_TYPE__ len);
-        int write(__UINT32_TYPE__ addr, __UINT8_TYPE__ *src, __UINT32_TYPE__ len);
+        byte* read(uint32_t address);
+        int write(uint32_t address, byte *data, uint32_t dataLength) ;
     }
 }

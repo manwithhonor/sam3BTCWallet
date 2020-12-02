@@ -1,12 +1,15 @@
 #include "crypto.h"
 #include "./../platform/platform.h"
+#include "Bitcoin.h"
+#include "journal.h"
+// #include "./platform/sam3X/DueFlashStorage.h"
 
 #define StringLength    (256/4)
 
 namespace crypto {
     namespace generate {
         int randomInt(platfrom::string seed) {
-            /*
+            
             char cStrHex[(StringLength+1)] = {0};
             int seedLen = 0;
             char cc[] = "Bitcoin seed";
@@ -16,31 +19,31 @@ namespace crypto {
             for(int i=0 ; i < StringLength; i++){
                 sprintf(cStrHex+i, "%x", rand() % 16);
             }
-
+/*
             seedLen = sha512Hmac((byte*)cc, strlen(cc), (byte*)cStrHex, strlen(cStrHex), seed);
-            Serial.println("Random number1: " + toHex(seed, seedLen));
+            Serial.println("Random number1: " + toHex(seed, seedLen));*/
             return 0;
 
             /*
             for (uint16_t i = 0; i < 256; i++){                       // here you have to get big 256-digital number
             long_numer = long_number + digitalRead(PB21)*(2^i);     // on board with AT91SAM3U input with random signal is 
             }                                                         // on the pin PB21. 
-            */
-           return 0;
+            
+           return 0;*/
         }
     }
 }
 
-/*
+
 int getHash(String transaction, byte* hash, int hashlen) {  
     if (hashlen < 64) {
         return 1;
     }
-
+/*
     char cc[] = "Bitcoin seed";
     int written = sha512Hmac((byte*)cc, strlen(cc), (byte*)transaction.c_str(), transaction.length(), hash);
     Serial.println("Sha512-HMAC: " + toHex(hash, written));
-    return written < hashlen ? 1 : 0;
+    return written < hashlen ? 1 : 0;*/
 } 
   
 HDPrivateKey genMasterPrivateKey(byte *seed) {
@@ -68,7 +71,7 @@ Signature signTransaction(PrivateKey child_private_key, byte *hash) {
     Signature signature = child_private_key.sign(hash);
     return signature;
 }
-
+/*
 void write_master_key2(byte *seed) { 
     //Serial.println("seed beffore  written!: " + toHex(seed, 64));
     uint32_t pointer = (MAXIMUM_SIZE + 1)*sizeof(Record);
@@ -101,5 +104,4 @@ void print_master_key() {
     memcpy(&temp, b, MASTER_KEY_LENGTH);
     Serial.println("This is the master key:");
     Serial.println(temp);
-}
-*/
+}*/
