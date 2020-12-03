@@ -30,12 +30,15 @@ namespace platfrom {
     }
 
     namespace console {
-        std::string readString() {
+        String readString() {
+            String input_string  = Serial.readString();
+            return input_string;
 
         }
 
-        int log(std::string message) {
-          //  Serial.println(message);
+        int printString(String message) {
+          Serial.println(message);
+          return 0;
         }
     }
 

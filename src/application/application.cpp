@@ -70,7 +70,9 @@ int loopIteration() {
 
     int oper = 0;
     // std::string user = "Roman";
-    String stringVar  = Serial.readString();
+    // String stringVar  = Serial.readString();
+    String stringVar  = platfrom::console::readString();
+
     String comand = getValue(stringVar, '_', 0);
     String user = getValue(stringVar, '_', 1);
 
@@ -82,8 +84,9 @@ int loopIteration() {
     //int inByte = Serial.read()-'0';
     switch(intVar) {
         case 0:
-        oper= crypto::generate::randomInt(mySeed);
-        Serial.println("Random number2: " + toHex(mySeed, 64));
+        oper = crypto::generate::randomInt(mySeed);
+        platfrom::console::printString("Random number: " + toHex(mySeed, 64));
+        // Serial.println("Random number2: " + toHex(mySeed, 64));
         break;
         
         
@@ -109,7 +112,8 @@ int loopIteration() {
         
         case 3:     
         getHash(message, hash, 64);
-        Serial.println("Test sha: " + toHex(hash, 64));
+        platfrom::console::printString("Sha512-HMAC: " + toHex(hash, 64));
+        // Serial.println("Test sha: " + toHex(hash, 64));
         
         signature = signTransaction(child_private_key, hash);
         Serial.print("Signature: ");

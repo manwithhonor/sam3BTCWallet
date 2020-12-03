@@ -27,7 +27,8 @@ namespace crypto {
             }
 
             seedLen = sha512Hmac((byte*)cc, strlen(cc), (byte*)cStrHex, strlen(cStrHex), seed);
-            Serial.println("Random number1: " + toHex(seed, seedLen));
+            // Serial.println("Random number1: " + toHex(seed, seedLen));
+            // platfrom::console::printString("Random number: " + toHex(mySeed, 64));
             return 0;
 
             /*
@@ -48,7 +49,7 @@ int getHash(String transaction, byte* hash, int hashlen) {
 
     char cc[] = "Bitcoin seed";
     int written = sha512Hmac((byte*)cc, strlen(cc), (byte*)transaction.c_str(), transaction.length(), hash);
-    Serial.println("Sha512-HMAC: " + toHex(hash, written));
+    // Serial.println("Sha512-HMAC: " + toHex(hash, written));
     return written < hashlen ? 1 : 0;
 } 
   

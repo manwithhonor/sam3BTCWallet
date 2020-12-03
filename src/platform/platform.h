@@ -24,8 +24,10 @@ namespace platfrom {
     }
 
     namespace console {
-        std::string readString();
-        int log(std::string);
+        //std::string readString();
+        String readString();
+        int printString(String message);
+        // int log(std::string);
     }
 
     namespace persistent {
