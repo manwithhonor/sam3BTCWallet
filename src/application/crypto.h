@@ -6,13 +6,13 @@
 
 namespace crypto {
     namespace generate {
-        int randomInt(platfrom::string seed);
+        int randomInt(byte* seed);
     }
 }
 
 
 int getHash(String transaction, byte* hash, int hashlen);
-
+HDPrivateKey genMasterPrivateKey(byte *seed);
 HDPublicKey getMasterPublicKey(HDPrivateKey hd);
 PrivateKey getChildPrivateKey(HDPrivateKey hd, int N);
 PublicKey getChildPublicKey(PrivateKey child_private_key);

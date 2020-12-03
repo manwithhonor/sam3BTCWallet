@@ -1,14 +1,20 @@
 #include "crypto.h"
 #include "./../platform/platform.h"
 #include "Bitcoin.h"
+#include "Hash.h"
 #include "journal.h"
 // #include "./platform/sam3X/DueFlashStorage.h"
 
 #define StringLength    (256/4)
 
+
+
+
+uint16_t long_numer = 0;      //256 - digital number to generate private master key "010011101010..."
+
 namespace crypto {
     namespace generate {
-        int randomInt(platfrom::string seed) {
+        int randomInt(byte* seed) {
             
             char cStrHex[(StringLength+1)] = {0};
             int seedLen = 0;
@@ -19,9 +25,9 @@ namespace crypto {
             for(int i=0 ; i < StringLength; i++){
                 sprintf(cStrHex+i, "%x", rand() % 16);
             }
-/*
+
             seedLen = sha512Hmac((byte*)cc, strlen(cc), (byte*)cStrHex, strlen(cStrHex), seed);
-            Serial.println("Random number1: " + toHex(seed, seedLen));*/
+            Serial.println("Random number1: " + toHex(seed, seedLen));
             return 0;
 
             /*
@@ -39,11 +45,11 @@ int getHash(String transaction, byte* hash, int hashlen) {
     if (hashlen < 64) {
         return 1;
     }
-/*
+
     char cc[] = "Bitcoin seed";
     int written = sha512Hmac((byte*)cc, strlen(cc), (byte*)transaction.c_str(), transaction.length(), hash);
     Serial.println("Sha512-HMAC: " + toHex(hash, written));
-    return written < hashlen ? 1 : 0;*/
+    return written < hashlen ? 1 : 0;
 } 
   
 HDPrivateKey genMasterPrivateKey(byte *seed) {
@@ -71,21 +77,23 @@ Signature signTransaction(PrivateKey child_private_key, byte *hash) {
     Signature signature = child_private_key.sign(hash);
     return signature;
 }
-/*
+
 void write_master_key2(byte *seed) { 
     //Serial.println("seed beffore  written!: " + toHex(seed, 64));
     uint32_t pointer = (MAXIMUM_SIZE + 1)*sizeof(Record);
     //byte buffer[sizeof(seed)];
     //memcpy(buffer, &seed, sizeof(seed) );
 
-    dueFlashStorage.write(pointer, seed, 64);
+    // dueFlashStorage.write(pointer, seed, 64);
+    platfrom::persistent::write(pointer, seed, 64);
     Serial.println("seed has been written!"); 
 }
 
 
 void print_master_key2() {
     uint32_t pointer = (MAXIMUM_SIZE + 1)*sizeof(Record);
-    byte * b = dueFlashStorage.readAddress(pointer);
+    // byte * b = dueFlashStorage.readAddress(pointer);
+    byte * b = platfrom::persistent::read(pointer);
     byte temp[64];
     memcpy(&temp, b, 64);
     Serial.println("Key2: " + toHex(temp, 64));
@@ -93,15 +101,17 @@ void print_master_key2() {
 
 void write_master_key(char * key) {
     uint16_t pointer = (MAXIMUM_SIZE + 1)*sizeof(Record);
-    dueFlashStorage.write(pointer, (byte *)key, MASTER_KEY_LENGTH); 
+    // dueFlashStorage.write(pointer, (byte *)key, MASTER_KEY_LENGTH); 
+    platfrom::persistent::write(pointer, (byte *)key, MASTER_KEY_LENGTH);
     Serial.println("Master key has been written!");
 }
 
 void print_master_key() {
     uint16_t pointer = (MAXIMUM_SIZE + 1)*sizeof(Record);
-    byte * b = dueFlashStorage.readAddress(pointer);
+    // byte * b = dueFlashStorage.readAddress(pointer);
+    byte * b = platfrom::persistent::read(pointer);
     char temp[MASTER_KEY_LENGTH];
     memcpy(&temp, b, MASTER_KEY_LENGTH);
     Serial.println("This is the master key:");
     Serial.println(temp);
-}*/
+}

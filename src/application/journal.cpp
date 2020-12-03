@@ -2,7 +2,11 @@
 #include "./../../src/platform/platform.h"
 #include "./../bitcoin/Bitcoin.h"
 #include "application.h"
-/*
+
+
+uint32_t event_number = 0;  //value that shows where is the last record in storage
+bool storage_is_full = false; //if this variable is false you can make operations, if true - you can not
+
 Record createRecord(String user, const char* operation, const char* status) {
     Record event;
     event.time = platfrom::clocks::get();
@@ -84,4 +88,3 @@ void cleanJournal(void) {
   event_number = 0;
   storage_is_full = false;
 }
-*/
