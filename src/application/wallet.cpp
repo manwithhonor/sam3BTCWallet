@@ -3,11 +3,13 @@
 #include "./../bitcoin/Bitcoin.h"
 #include "./../../src/platform/platform.h"
 
+#include "../../platform/sam3x/DueFlashStorage.h"
+
 const int journalSize = 1000;
 const int masterKeyLength = 112;
 
 struct Record {
-    platfrom::clocks::Time time;
+    platform::clocks::Time time;
     char user[16];
     char status[16];
     char operation[32];
@@ -19,7 +21,7 @@ struct Record {
 
 Record::Record(char user[16], char operation[32], char status[16]) {
     Record record;
-    record.time = platfrom::clocks::get();
+    record.time = platform::clocks::get();
     memcpy(&record.user, user, 16 * sizeof(char));
     memcpy(&record.operation, operation, 32 * sizeof(char));
     memcpy(&record.status, status, 16 * sizeof(char));
@@ -59,7 +61,7 @@ void Wallet::appendJournalRecord(String record) {
         uint32_t address = this->journalTail * sizeof(Record);
         byte buffer[sizeof(record)];
         memcpy(buffer, &record, sizeof(record));
-        platfrom::persistent::write(address, buffer, sizeof(record));
+        platform::persistent::write(address, buffer, sizeof(record));
         this->journalTail++;
         Serial.println("Record has been written!");
     } else {
@@ -69,7 +71,7 @@ void Wallet::appendJournalRecord(String record) {
 
 void Wallet::cleanJournal() {
     Record flood;
-    flood.time = platfrom::clocks::Time{0, 0, 0, 0, 0, 0};
+    flood.time = platform::clocks::Time{0, 0, 0, 0, 0, 0};
 
     byte buffer[sizeof(Record)];
     memcpy(buffer, &flood, sizeof(flood));
@@ -77,7 +79,7 @@ void Wallet::cleanJournal() {
     uint32_t address;
     for (uint32_t i = 0; i < journalSize; i++) {
         address = i * sizeof(Record);
-        platfrom::persistent::write(address, buffer, sizeof(flood));
+        platform::persistent::write(address, buffer, sizeof(flood));
     }
 
     this->journalTail = 0;
@@ -90,12 +92,12 @@ void Wallet::printJournal() {
     } else {
         Serial.println("--------------------Begin journal--------------------");
         for (uint32_t j = 0; j < this->journalTail; j++) {
-            uint16_t i;
+            /*uint16_t i;
             i = j*sizeof(Record);
-            byte* b = platfrom::persistent::read(i);
+            byte* b = platform::persistent::read(i);
             Record record;
             memcpy(&record, b, sizeof(Record));
-            record.print();
+            record.print();*/
         }
         Serial.println("--------------------End journal----------------------");
     }
@@ -119,8 +121,18 @@ int Wallet::generateSeed(){
     Serial.println("Seed: " + toHex(seed, seedLen));
 
     uint16_t pointer = (journalSize + 1) * sizeof(Record);
-    platfrom::persistent::write(pointer, seed, 64);
+    platform::persistent::write(pointer, seed, 64);
     Serial.println("Seed has been written.");
+
+
+    DueFlashStorage dueFlashStorage;
+    byte * b = dueFlashStorage.readAddress(pointer);
+    byte temp[64]= { 0 };
+    platform::persistent::read(pointer, temp);
+    //byte temp[64];
+    //memcpy(&temp, b, 64);
+    Serial.println("TEST3: " + toHex(temp, 64));
+
 
     return 0; 
     
@@ -132,11 +144,18 @@ int Wallet::generateSeed(){
 }
 
 int Wallet::readSeed(byte* seed){
+    Serial.println("Start");
     uint32_t pointer = (journalSize + 1)*sizeof(Record);
-    byte * b = platfrom::persistent::read(pointer);
-    // byte seed[64];
-    memcpy(&seed, b, 64);
-    Serial.println("Key2: " + toHex(seed, 64));
+    //platform::persistent::read(pointer, seed);
+    Serial.println("mid");
+    DueFlashStorage dueFlashStorage;
+    byte * b = dueFlashStorage.readAddress(pointer);
+    byte temp[64];
+    memcpy(&temp, b, 64);
+    // byte seed1[64];
+    // memcpy(&seed1, seed, 64);
+    Serial.println("Key2: " + toHex(temp, 64));
+    
     return 0; 
 }
 
@@ -150,12 +169,12 @@ HDPrivateKey Wallet::generatePrivateKey() {
     return hd;
 
     /*uint16_t pointer = (journalSize + 1) * sizeof(Record);
-    platfrom::persistent::write(pointer, (byte *)hd, masterKeyLength);
+    platform::persistent::write(pointer, (byte *)hd, masterKeyLength);
     Serial.println("Master key has been written!");*/
 }
 
 PublicKey Wallet::printPublicKey() {
-    byte seed[64] = { 0 }; // this seed should be random generated
+   /* byte seed[64] = { 0 }; // this seed should be random generated
     Wallet wallet;
     wallet.readSeed(seed);
     Serial.println("Seed: " + toHex(seed, 64));
@@ -168,7 +187,7 @@ PublicKey Wallet::printPublicKey() {
     PublicKey pubKey = hd.publicKey();
     Serial.print("This is master public key: ");
     Serial.println(pubKey);
-    return pubKey;
+    return pubKey;*/
 }
 
 void Wallet::signTransaction(byte *hash) {

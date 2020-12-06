@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <Arduino.h>
 
-namespace platfrom {
+namespace platform {
     namespace clocks {
         struct Time {
             uint8_t seconds;
@@ -25,7 +25,7 @@ namespace platfrom {
     }
 
     namespace persistent {
-        byte* read(uint32_t address);
+        int read(uint32_t address, byte* seed);
         int write(uint32_t address, byte *data, uint32_t dataLength) ;
     }
 }

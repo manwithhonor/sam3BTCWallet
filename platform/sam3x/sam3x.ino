@@ -25,7 +25,7 @@
 
 void setup() {
     Serial.begin(115200);
-    platfrom::clocks::init();
+    platform::clocks::init();
 }
 
   

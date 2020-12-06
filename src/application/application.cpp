@@ -37,7 +37,7 @@ String getValue(String data, char separator, int index) {
 
 int loopIteration() {
     int oper = 0;
-    String rawCmd  = platfrom::console::readString();
+    String rawCmd  = platform::console::readString();
     String cmd = getValue(rawCmd, '_', 0);
     String user = getValue(rawCmd, '_', 1);
     commands intCmd = (commands) cmd.toInt();
@@ -48,7 +48,8 @@ int loopIteration() {
         break;
         
     case printPublicKey:
-        wallet.printPublicKey();
+        wallet.readSeed(seed);
+        //wallet.printPublicKey();
         break;
         
     case signTransaction:

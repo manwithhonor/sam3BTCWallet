@@ -1,6 +1,6 @@
 #include "DueFlashStorage.h"
 #include "rtc_clock.h"
-
+#include "./../bitcoin/Bitcoin.h"
 #include "./../../src/platform/platform.h"
 
 RTC_clock rtc_clock(RC); // Select the Slowclock source
@@ -14,8 +14,8 @@ namespace platform {
             rtc_clock.set_date(__DATE__);   //if __DATA__ is 1.1.2007 then this is a problem of compiler  
         }
 
-        platfrom::clocks::Time get() {
-            platfrom::clocks::Time time;
+        platform::clocks::Time get() {
+            platform::clocks::Time time;
     
             time.seconds = rtc_clock.get_seconds();
             time.minutes = rtc_clock.get_minutes();
@@ -46,13 +46,15 @@ namespace platform {
     }
 
     namespace persistent {
-        byte* read(uint32_t address) {
-            return dueFlashStorage.readAddress(address);
+        int read(uint32_t address, byte* seed) {
+            byte * b = dueFlashStorage.readAddress(address);
+            memcpy(&seed, b, 64);
+            return 0;
         }
 
         int write(uint32_t address, byte *data, uint32_t dataLength) {
             dueFlashStorage.write(address, data, dataLength);
-            return 0 ;
+            return 0;
         }
     }
 }

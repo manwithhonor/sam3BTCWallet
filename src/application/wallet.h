@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <Arduino.h>
 #include "./../bitcoin/Bitcoin.h"
-#include "./../platform/platform.h"
+//#include "./../platform/platform.h"
 
 class Wallet {
     uint8_t journalTail;
