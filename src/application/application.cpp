@@ -9,6 +9,9 @@
 
 Wallet wallet;
 
+byte hash[64] = { 0 }; 
+byte seed[64] = { 0 }; 
+
 enum commands {
     generateNewPrivateKey = 0,
     printPublicKey        = 1,
@@ -35,14 +38,13 @@ String getValue(String data, char separator, int index) {
 int loopIteration() {
     int oper = 0;
     String rawCmd  = platfrom::console::readString();
-
     String cmd = getValue(rawCmd, '_', 0);
     String user = getValue(rawCmd, '_', 1);
     commands intCmd = (commands) cmd.toInt();
 
     switch(intCmd) {
     case generateNewPrivateKey:
-        wallet.generatePrivateKey();
+        wallet.generateSeed();
         break;
         
     case printPublicKey:
@@ -50,11 +52,11 @@ int loopIteration() {
         break;
         
     case signTransaction:
-        wallet.signTransaction();
+        wallet.signTransaction(hash);
         break;
 
     case printJournal:
-        wallet.printJournal();
+       // wallet.printJournal();
         break;  
 
     default: 

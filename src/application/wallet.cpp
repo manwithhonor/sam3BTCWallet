@@ -1,5 +1,7 @@
 #include "wallet.h"
+#include "Hash.h"
 #include "./../bitcoin/Bitcoin.h"
+#include "./../../src/platform/platform.h"
 
 const int journalSize = 1000;
 const int masterKeyLength = 112;
@@ -99,38 +101,88 @@ void Wallet::printJournal() {
     }
 }
 
-void Wallet::generatePrivateKey() {
+
+int Wallet::generateSeed(){
+    char cStrHex[65] = {0};
+    int seedLen = 0;
+    char cc[] = "Bitcoin seed";
+    byte seed[64] = { 0 };
+    //srand((unsigned int) time(0)); 
+    srand(0); // Set seed for randomizer
+
+    
+    for(int i=0 ; i < 64; i++){
+        sprintf(cStrHex+i, "%x", rand() % 16); // Fill the char buffer
+    }
+    
+    seedLen = sha512Hmac((byte*)cc, strlen(cc), (byte*)cStrHex, strlen(cStrHex), seed);
+    Serial.println("Seed: " + toHex(seed, seedLen));
+
+    uint16_t pointer = (journalSize + 1) * sizeof(Record);
+    platfrom::persistent::write(pointer, seed, 64);
+    Serial.println("Seed has been written.");
+
+    return 0; 
+    
+    /*
+    for (int i = 0; i < 256; i++){                       // here you have to get big 256-digital number
+        long_numer = long_number + digitalRead(PB21)*(2^i);     // on board with AT91SAM3U input with random signal is 
+    }                                                         // on the pin PB21. 
+    */
+}
+
+int Wallet::readSeed(byte* seed){
+    uint32_t pointer = (journalSize + 1)*sizeof(Record);
+    byte * b = platfrom::persistent::read(pointer);
+    // byte seed[64];
+    memcpy(&seed, b, 64);
+    Serial.println("Key2: " + toHex(seed, 64));
+    return 0; 
+}
+
+HDPrivateKey Wallet::generatePrivateKey() {
     HDPrivateKey hd("ABCDEFG09");
-    byte seed[64] = { 0 }; 
-    hd.setSecret((uint8_t*) seed); 
+    // HDPrivateKey hd();
+    byte seed[64] = { 0 }; // this seed should be random generated
+    Wallet wallet;
+    wallet.readSeed(seed);
+    hd.setSecret((uint8_t*) seed);
+    return hd;
 
-    uint16_t pointer = (journalSize + 1) * sizeof(Record);
+    /*uint16_t pointer = (journalSize + 1) * sizeof(Record);
     platfrom::persistent::write(pointer, (byte *)hd, masterKeyLength);
-    Serial.println("Master key has been written!");
+    Serial.println("Master key has been written!");*/
 }
 
-void Wallet::printPublicKey() {
-    uint16_t pointer = (journalSize + 1) * sizeof(Record);
-    byte * b = platfrom::persistent::read(pointer);
-    char hd[masterKeyLength];
-    memcpy(&hd, b, masterKeyLength);
-    Serial.println("This is the master key:");
+PublicKey Wallet::printPublicKey() {
+    byte seed[64] = { 0 }; // this seed should be random generated
+    Wallet wallet;
+    wallet.readSeed(seed);
+    Serial.println("Seed: " + toHex(seed, 64));
+
+    HDPrivateKey hd("ABCDEFG09");
+    hd.setSecret((uint8_t*) seed);
+    Serial.print("This is master private key: ");
     Serial.println(hd);
 
-    PublicKey pubKey = hd.publicKey()
-
-    Serial.println("This is public key key:");
+    PublicKey pubKey = hd.publicKey();
+    Serial.print("This is master public key: ");
     Serial.println(pubKey);
+    return pubKey;
 }
 
-void Wallet::signTransaction() {
-    uint16_t pointer = (journalSize + 1) * sizeof(Record);
-    byte * b = platfrom::persistent::read(pointer);
-    char PrivateKey hd[masterKeyLength];
-    memcpy(&hd, b, masterKeyLength);
-    Serial.println("This is the master key:");
-    Serial.println(hd);
+void Wallet::signTransaction(byte *hash) {
+    /*byte seed[64] = { 0 }; // this seed should be random generated
+    Wallet wallet;
+    wallet.readSeed(seed);
+    Serial.println("Seed: " + toHex(seed, 64));
+
+    HDPrivateKey hd();
+    hd.setSecret((uint8_t*) seed);
+    Serial.print("This is master private key: ");
+    Serial.println(pubKey);
 
     Signature signature = hd.sign(hash);
-    Serial.println(signature);
+    Serial.print("Signature: ");
+    Serial.println(signature);*/
 }
