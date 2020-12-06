@@ -120,19 +120,9 @@ int Wallet::generateSeed(){
     seedLen = sha512Hmac((byte*)cc, strlen(cc), (byte*)cStrHex, strlen(cStrHex), seed);
     Serial.println("Seed: " + toHex(seed, seedLen));
 
-    uint16_t pointer = (journalSize + 1) * sizeof(Record);
+    uint32_t pointer = (journalSize + 1) * sizeof(Record);
     platform::persistent::write(pointer, seed, 64);
     Serial.println("Seed has been written.");
-
-
-    DueFlashStorage dueFlashStorage;
-    byte * b = dueFlashStorage.readAddress(pointer);
-    byte temp[64]= { 0 };
-    platform::persistent::read(pointer, temp);
-    //byte temp[64];
-    //memcpy(&temp, b, 64);
-    Serial.println("TEST3: " + toHex(temp, 64));
-
 
     return 0; 
     
@@ -144,64 +134,67 @@ int Wallet::generateSeed(){
 }
 
 int Wallet::readSeed(byte* seed){
-    Serial.println("Start");
     uint32_t pointer = (journalSize + 1)*sizeof(Record);
-    //platform::persistent::read(pointer, seed);
-    Serial.println("mid");
-    DueFlashStorage dueFlashStorage;
-    byte * b = dueFlashStorage.readAddress(pointer);
-    byte temp[64];
-    memcpy(&temp, b, 64);
-    // byte seed1[64];
-    // memcpy(&seed1, seed, 64);
-    Serial.println("Key2: " + toHex(temp, 64));
-    
+    platform::persistent::read(pointer, seed);
+   
     return 0; 
 }
 
 HDPrivateKey Wallet::generatePrivateKey() {
     HDPrivateKey hd("ABCDEFG09");
-    // HDPrivateKey hd();
     byte seed[64] = { 0 }; // this seed should be random generated
     Wallet wallet;
     wallet.readSeed(seed);
     hd.setSecret((uint8_t*) seed);
+    // Serial.println(hd);
     return hd;
-
-    /*uint16_t pointer = (journalSize + 1) * sizeof(Record);
-    platform::persistent::write(pointer, (byte *)hd, masterKeyLength);
-    Serial.println("Master key has been written!");*/
 }
 
 PublicKey Wallet::printPublicKey() {
-   /* byte seed[64] = { 0 }; // this seed should be random generated
     Wallet wallet;
-    wallet.readSeed(seed);
-    Serial.println("Seed: " + toHex(seed, 64));
-
-    HDPrivateKey hd("ABCDEFG09");
-    hd.setSecret((uint8_t*) seed);
+    HDPrivateKey masterkey = wallet.generatePrivateKey();
     Serial.print("This is master private key: ");
-    Serial.println(hd);
+    Serial.println(masterkey);
 
-    PublicKey pubKey = hd.publicKey();
+    HDPublicKey pubKey = masterkey.xpub();
     Serial.print("This is master public key: ");
     Serial.println(pubKey);
-    return pubKey;*/
+
+    String derivationPath;
+
+    // get plain adresesses
+    for(int i=0; i<20; i++){
+        derivationPath = String("m/0/") + i;
+        Serial.print("Path: " + derivationPath + ", ");
+        // Serial.println(path);
+        Serial.print("Address: ");
+        Serial.println(pubKey.derive(derivationPath).address());
+    }
+
+    // get adresesses for change
+    for(int i=0; i<10; i++){
+        derivationPath = String("m/0/") + i;
+        Serial.print("Path: " + derivationPath + ", ");
+        // Serial.println(path);
+        Serial.print("Address: ");
+        Serial.println(pubKey.derive(derivationPath).address());
+    }
+
+
+    return pubKey;
 }
 
-void Wallet::signTransaction(byte *hash) {
-    /*byte seed[64] = { 0 }; // this seed should be random generated
+void Wallet::signTransaction(byte *hash, String derivationPath) {
     Wallet wallet;
-    wallet.readSeed(seed);
-    Serial.println("Seed: " + toHex(seed, 64));
+    HDPrivateKey masterkey = wallet.generatePrivateKey();
+    PrivateKey privkey = masterkey.derive(derivationPath);
 
-    HDPrivateKey hd();
-    hd.setSecret((uint8_t*) seed);
     Serial.print("This is master private key: ");
-    Serial.println(pubKey);
+    Serial.println(masterkey);
+    Serial.print("This is child private key: ");
+    Serial.println(privkey);
 
-    Signature signature = hd.sign(hash);
+    Signature signature = privkey.sign(hash);
     Serial.print("Signature: ");
-    Serial.println(signature);*/
+    Serial.println(signature);
 }

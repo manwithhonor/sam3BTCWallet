@@ -13,8 +13,8 @@ byte hash[64] = { 0 };
 byte seed[64] = { 0 }; 
 
 enum commands {
-    generateNewPrivateKey = 0,
-    printPublicKey        = 1,
+    generateNewSeed = 0,
+    printPublicKeys        = 1,
     signTransaction       = 2,
     printJournal          = 3
 };
@@ -42,22 +42,27 @@ int loopIteration() {
     String user = getValue(rawCmd, '_', 1);
     commands intCmd = (commands) cmd.toInt();
 
+    String mytest = "m/0/1";
+
     switch(intCmd) {
-    case generateNewPrivateKey:
+    case generateNewSeed:
         wallet.generateSeed();
         break;
         
-    case printPublicKey:
-        wallet.readSeed(seed);
-        //wallet.printPublicKey();
+    case printPublicKeys:
+        //wallet.generatePrivateKey();
+        // wallet.readSeed(seed);
+        //Serial.println("Seed3: " + toHex(seed, 64));
+        wallet.printPublicKey();
         break;
         
     case signTransaction:
-        wallet.signTransaction(hash);
+        wallet.readSeed(seed);
+        wallet.signTransaction(seed, mytest);
         break;
 
     case printJournal:
-       // wallet.printJournal();
+        // wallet.printJournal();
         break;  
 
     default: 

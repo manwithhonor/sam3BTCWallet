@@ -21,5 +21,5 @@ public:
     int readSeed(byte* seed);
     HDPrivateKey generatePrivateKey();
     PublicKey printPublicKey();
-    void signTransaction(byte *hash);
+    void signTransaction(byte *hash, String derivationPath);
 };
