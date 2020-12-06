@@ -7,23 +7,13 @@ const int journalSize = 1000;
 const int masterKeyLength = 112;
 const int seedlen = 64;
 
-struct Record {
-    platform::clocks::Time time;
-    char user[16];
-    char status[16];
-    char operation[32];
-
-    Record();
-    Record(char user[16], char operation[32], char status[16]);
-    void print();
-};
+Record::Record() {}
 
 Record::Record(char user[16], char operation[32], char status[16]) {
-    Record record;
-    record.time = platform::clocks::get();
-    memcpy(&record.user, user, 16 * sizeof(char));
-    memcpy(&record.operation, operation, 32 * sizeof(char));
-    memcpy(&record.status, status, 16 * sizeof(char));
+    this->time = platform::clocks::get();
+    memcpy(&this->user, user, 16 * sizeof(char));
+    memcpy(&this->operation, operation, 32 * sizeof(char));
+    memcpy(&this->status , status, 16 * sizeof(char));
 }
 
 void Record::print() {
@@ -53,24 +43,47 @@ Wallet::~Wallet() {}
 
 void Wallet::init() {}
 
-void Wallet::appendJournalRecord(String record) {
+void Wallet::appendJournalRecord(Record record) {
     if (this->journalTail < journalSize) {
-        Record record = Record();
-
         uint32_t address = this->journalTail * sizeof(Record);
         byte buffer[sizeof(record)];
         memcpy(buffer, &record, sizeof(record));
         platform::persistent::write(address, buffer, sizeof(record));
         this->journalTail++;
-        Serial.println("Record has been written!");
+        // Serial.println("Record has been written!");
     } else {
         Serial.println("Journal is full!");
+    }
+}
+
+void Wallet::printJournal() {
+    if (this->journalTail == 0) {
+        Serial.println("Journal is empty!");
+    } else {
+        uint32_t address;
+        Record record;
+        byte temp[sizeof(Record)];
+        Serial.println("--------------------Begin journal--------------------");
+        for (uint32_t j = 0; j < this->journalTail; j++) {
+            address = j*sizeof(Record);
+            platform::persistent::read(address, temp, sizeof(Record));
+            memcpy(&record, temp, sizeof(Record));
+            record.print();
+        }
+        Serial.println("--------------------End journal----------------------");
     }
 }
 
 void Wallet::cleanJournal() {
     Record flood;
     flood.time = platform::clocks::Time{0, 0, 0, 0, 0, 0};
+    char user[16] =  {""};
+    char operation[32] = {""};
+    char status[16] = {""};
+
+    memcpy(&flood.user, user, 16 * sizeof(char));
+    memcpy(&flood.operation, operation, 32 * sizeof(char));
+    memcpy(&flood.status , status, 16 * sizeof(char));
 
     byte buffer[sizeof(Record)];
     memcpy(buffer, &flood, sizeof(flood));
@@ -84,24 +97,6 @@ void Wallet::cleanJournal() {
     this->journalTail = 0;
     Serial.println("Journal has been cleaned!");
 }
-
-void Wallet::printJournal() {
-    if (this->journalTail == 0) {
-        Serial.println("Journal is empty!");
-    } else {
-        Serial.println("--------------------Begin journal--------------------");
-        for (uint32_t j = 0; j < this->journalTail; j++) {
-            /*uint16_t i;
-            i = j*sizeof(Record);
-            byte* b = platform::persistent::read(i);
-            Record record;
-            memcpy(&record, b, sizeof(Record));
-            record.print();*/
-        }
-        Serial.println("--------------------End journal----------------------");
-    }
-}
-
 
 void Wallet::generateSeed(){
     char cStrHex[65] = {0};
@@ -144,7 +139,6 @@ HDPrivateKey Wallet::generatePrivateKey() {
     Wallet wallet;
     wallet.readSeed(seed);
     hd.setSecret((uint8_t*) seed);
-    // Serial.println(hd);
     return hd;
 }
 

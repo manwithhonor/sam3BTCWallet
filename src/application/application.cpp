@@ -9,8 +9,6 @@
 
 Wallet wallet;
 
-
-
 enum commands {
     generateNewSeed = 0,
     printPublicKeys = 1,
@@ -38,13 +36,17 @@ int loopIteration() {
     int oper = 0;
     String rawCmd  = platform::console::readString();
     String cmd = getValue(rawCmd, '_', 0);
-    String user = getValue(rawCmd, '_', 1);
+    String data = getValue(rawCmd, '_', 1);
     commands intCmd = (commands) cmd.toInt();
 
     // this is for test purpose only
     String testpath = "m/0/1";
     byte hash[64] = { 0 }; 
     byte seed[64] = { 0 }; 
+    char user[16] =  "Roman";
+    char operation[32] = "Test";
+    char status[16] = "Success";
+    Record event(user, operation, status);
 
     switch(intCmd) {
     case generateNewSeed:
@@ -60,7 +62,9 @@ int loopIteration() {
         break;
 
     case printJournal:
-        // wallet.printJournal();
+        wallet.appendJournalRecord(event);
+        wallet.printJournal();
+        // wallet.cleanJournal();
         break;  
 
     default: 
