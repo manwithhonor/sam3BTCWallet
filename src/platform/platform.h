@@ -1,13 +1,8 @@
 #pragma once
-#include <string>
-#include "./../bitcoin/Bitcoin.h"
-
+#include <stdint.h>
+#include <Arduino.h>
 
 namespace platfrom {
-    class string {
-        char* c_str();
-    };
-
     namespace clocks {
         struct Time {
             uint8_t seconds;
@@ -19,15 +14,14 @@ namespace platfrom {
             uint8_t day;
         };
 
-        int init();
+        void init();
         Time get();
     }
 
     namespace console {
-        //std::string readString();
         String readString();
+        int print(String message);
         int printString(String message);
-        // int log(std::string);
     }
 
     namespace persistent {
