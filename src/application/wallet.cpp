@@ -7,6 +7,7 @@
 
 const int journalSize = 1000;
 const int masterKeyLength = 112;
+const int seedlen = 64;
 
 struct Record {
     platform::clocks::Time time;
@@ -104,16 +105,16 @@ void Wallet::printJournal() {
 }
 
 
-int Wallet::generateSeed(){
+void Wallet::generateSeed(){
     char cStrHex[65] = {0};
     int seedLen = 0;
     char cc[] = "Bitcoin seed";
-    byte seed[64] = { 0 };
+    byte seed[seedlen] = { 0 };
     //srand((unsigned int) time(0)); 
     srand(0); // Set seed for randomizer
 
     
-    for(int i=0 ; i < 64; i++){
+    for(int i=0 ; i < seedlen; i++){
         sprintf(cStrHex+i, "%x", rand() % 16); // Fill the char buffer
     }
     
@@ -121,10 +122,9 @@ int Wallet::generateSeed(){
     Serial.println("Seed: " + toHex(seed, seedLen));
 
     uint32_t pointer = (journalSize + 1) * sizeof(Record);
-    platform::persistent::write(pointer, seed, 64);
+    platform::persistent::write(pointer, seed, seedlen);
     Serial.println("Seed has been written.");
 
-    return 0; 
     
     /*
     for (int i = 0; i < 256; i++){                       // here you have to get big 256-digital number
@@ -135,14 +135,14 @@ int Wallet::generateSeed(){
 
 int Wallet::readSeed(byte* seed){
     uint32_t pointer = (journalSize + 1)*sizeof(Record);
-    platform::persistent::read(pointer, seed);
+    platform::persistent::read(pointer, seed, seedlen);
    
     return 0; 
 }
 
 HDPrivateKey Wallet::generatePrivateKey() {
     HDPrivateKey hd("ABCDEFG09");
-    byte seed[64] = { 0 }; // this seed should be random generated
+    byte seed[seedlen] = { 0 };
     Wallet wallet;
     wallet.readSeed(seed);
     hd.setSecret((uint8_t*) seed);
@@ -150,7 +150,7 @@ HDPrivateKey Wallet::generatePrivateKey() {
     return hd;
 }
 
-PublicKey Wallet::printPublicKey() {
+void Wallet::printPublicKey() {
     Wallet wallet;
     HDPrivateKey masterkey = wallet.generatePrivateKey();
     Serial.print("This is master private key: ");
@@ -166,22 +166,18 @@ PublicKey Wallet::printPublicKey() {
     for(int i=0; i<20; i++){
         derivationPath = String("m/0/") + i;
         Serial.print("Path: " + derivationPath + ", ");
-        // Serial.println(path);
         Serial.print("Address: ");
         Serial.println(pubKey.derive(derivationPath).address());
     }
 
     // get adresesses for change
     for(int i=0; i<10; i++){
-        derivationPath = String("m/0/") + i;
+        derivationPath = String("m/1/") + i;
         Serial.print("Path: " + derivationPath + ", ");
-        // Serial.println(path);
         Serial.print("Address: ");
         Serial.println(pubKey.derive(derivationPath).address());
     }
 
-
-    return pubKey;
 }
 
 void Wallet::signTransaction(byte *hash, String derivationPath) {

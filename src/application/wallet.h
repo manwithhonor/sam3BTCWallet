@@ -5,6 +5,8 @@
 
 class Wallet {
     uint8_t journalTail;
+    int readSeed(byte* seed);
+    HDPrivateKey generatePrivateKey();
 
 public:
     Wallet();
@@ -13,13 +15,10 @@ public:
     void init();
 
     void appendJournalRecord(String record);
-
     void cleanJournal();
     void printJournal();
 
-    int generateSeed();
-    int readSeed(byte* seed);
-    HDPrivateKey generatePrivateKey();
-    PublicKey printPublicKey();
+    void generateSeed();
+    void printPublicKey();
     void signTransaction(byte *hash, String derivationPath);
 };

@@ -9,14 +9,13 @@
 
 Wallet wallet;
 
-byte hash[64] = { 0 }; 
-byte seed[64] = { 0 }; 
+
 
 enum commands {
     generateNewSeed = 0,
-    printPublicKeys        = 1,
-    signTransaction       = 2,
-    printJournal          = 3
+    printPublicKeys = 1,
+    signTransaction = 2,
+    printJournal    = 3
 };
 
 String getValue(String data, char separator, int index) {
@@ -42,7 +41,10 @@ int loopIteration() {
     String user = getValue(rawCmd, '_', 1);
     commands intCmd = (commands) cmd.toInt();
 
+    // this is for test purpose only
     String mytest = "m/0/1";
+    byte hash[64] = { 0 }; 
+    byte seed[64] = { 0 }; 
 
     switch(intCmd) {
     case generateNewSeed:
@@ -50,15 +52,12 @@ int loopIteration() {
         break;
         
     case printPublicKeys:
-        //wallet.generatePrivateKey();
-        // wallet.readSeed(seed);
-        //Serial.println("Seed3: " + toHex(seed, 64));
         wallet.printPublicKey();
         break;
         
     case signTransaction:
-        wallet.readSeed(seed);
-        wallet.signTransaction(seed, mytest);
+        // wallet.readSeed(hash);
+        wallet.signTransaction(hash, mytest);
         break;
 
     case printJournal:

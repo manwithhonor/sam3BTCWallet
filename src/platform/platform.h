@@ -25,7 +25,7 @@ namespace platform {
     }
 
     namespace persistent {
-        int read(uint32_t address, byte* seed);
+        int read(uint32_t address, byte* seed, uint32_t dataLength);
         int write(uint32_t address, byte *data, uint32_t dataLength) ;
     }
 }

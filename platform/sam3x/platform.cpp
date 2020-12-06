@@ -46,9 +46,9 @@ namespace platform {
     }
 
     namespace persistent {
-        int read(uint32_t address, byte* seed) {
+        int read(uint32_t address, byte* seed, uint32_t dataLength) {
             byte * b = dueFlashStorage.readAddress(address);
-            memcpy(seed, b, 64);
+            memcpy(seed, b, dataLength);
             return 0;
         }
 
