@@ -42,7 +42,7 @@ int loopIteration() {
     commands intCmd = (commands) cmd.toInt();
 
     // this is for test purpose only
-    String mytest = "m/0/1";
+    String testpath = "m/0/1";
     byte hash[64] = { 0 }; 
     byte seed[64] = { 0 }; 
 
@@ -56,8 +56,7 @@ int loopIteration() {
         break;
         
     case signTransaction:
-        // wallet.readSeed(hash);
-        wallet.signTransaction(hash, mytest);
+        wallet.signTransaction(hash, testpath);
         break;
 
     case printJournal:

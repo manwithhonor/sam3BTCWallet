@@ -3,8 +3,6 @@
 #include "./../bitcoin/Bitcoin.h"
 #include "./../../src/platform/platform.h"
 
-#include "../../platform/sam3x/DueFlashStorage.h"
-
 const int journalSize = 1000;
 const int masterKeyLength = 112;
 const int seedlen = 64;
@@ -141,7 +139,7 @@ int Wallet::readSeed(byte* seed){
 }
 
 HDPrivateKey Wallet::generatePrivateKey() {
-    HDPrivateKey hd("ABCDEFG09");
+    HDPrivateKey hd;
     byte seed[seedlen] = { 0 };
     Wallet wallet;
     wallet.readSeed(seed);
