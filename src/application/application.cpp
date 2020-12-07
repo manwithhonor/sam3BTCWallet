@@ -35,9 +35,15 @@ String getValue(String data, char separator, int index) {
 int loopIteration() {
     int oper = 0;
     String rawCmd  = platform::console::readString();
-    String cmd = getValue(rawCmd, '_', 0);
+    
+    // this lines is for parsing strings in COMMAND_DATA format
+    // it's disabled for test purpose
+    
+    /* String cmd = getValue(rawCmd, '_', 0);
     String data = getValue(rawCmd, '_', 1);
-    commands intCmd = (commands) cmd.toInt();
+    commands intCmd = (commands) cmd.toInt();*/
+
+    commands intCmd = (commands) rawCmd.toInt();
 
     // this is for test purpose only
     String testpath = "m/0/1";
