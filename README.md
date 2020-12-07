@@ -5,12 +5,10 @@
 ## Установка и подготовка к работе
 Для начала  работы необходимо установить arduino-cli. Инструкция по установке на Mac/Linux/Windows: https://arduino.github.io/arduino-cli/installation/
 
-Далее необходимо установить библиотеки [Arduino-Due-RTC-Library](https://github.com/MarkusLange/Arduino-Due-RTC-Library) и [DueFlashStorage](https://github.com/sebnil/DueFlashStorage), а также модуль для платы [arduinoDue](https://www.arduino.cc/en/Guide/ArduinoDue). Это можно сделать командами:
+Далее необходимо установить модуль для платы [arduinoDue](https://www.arduino.cc/en/Guide/ArduinoDue). Это можно сделать командой:
 
 ```
 arduino-cli core install arduino:sam
-arduino-cli lib install DueFlashStorage
-arduino-cli lib install RTCDue
 ```
 
 
