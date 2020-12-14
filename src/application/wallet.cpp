@@ -142,7 +142,7 @@ HDPrivateKey Wallet::generatePrivateKey() {
     return hd;
 }
 
-void Wallet::printPublicKey() {
+void Wallet::printPublicKey(String derivationPath) {
     Wallet wallet;
     HDPrivateKey masterkey = wallet.generatePrivateKey();
     Serial.print("This is master private key: ");
@@ -152,8 +152,13 @@ void Wallet::printPublicKey() {
     Serial.print("This is master public key: ");
     Serial.println(pubKey);
 
-    String derivationPath;
+    // String derivationPath;
+    // derivationPath = String("m/0/") + i;
+    Serial.print("Path: " + derivationPath + ", ");
+    Serial.print("Address: ");
+    Serial.println(pubKey.derive(derivationPath).address());
 
+/*
     // get plain adresesses
     for(int i=0; i<20; i++){
         derivationPath = String("m/0/") + i;
@@ -169,6 +174,7 @@ void Wallet::printPublicKey() {
         Serial.print("Address: ");
         Serial.println(pubKey.derive(derivationPath).address());
     }
+*/
 
 }
 

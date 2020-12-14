@@ -39,36 +39,61 @@ int loopIteration() {
     // this lines is for parsing strings in COMMAND_DATA format
     // it's disabled for test purpose
     
-    /* String cmd = getValue(rawCmd, '_', 0);
+    String cmd = getValue(rawCmd, '_', 0);
     String data = getValue(rawCmd, '_', 1);
-    commands intCmd = (commands) cmd.toInt();*/
+    commands intCmd = (commands) cmd.toInt();
 
-    commands intCmd = (commands) rawCmd.toInt();
+    // commands intCmd = (commands) rawCmd.toInt();
 
     // this is for test purpose only
     String testpath = "m/0/1";
-    byte hash[64] = { 0 }; 
+    String buffer;
+    byte hash[32] = { 0 }; 
     byte seed[64] = { 0 }; 
     char user[16] =  "Roman";
     char operation[32] = "Test";
     char status[16] = "Success";
+
+
+
     Record event(user, operation, status);
+    // Record event(user, operation, status);
+    
 
     switch(intCmd) {
     case generateNewSeed:
         wallet.generateSeed();
+
+        buffer = "generateNewSeed";
+        buffer.toCharArray(operation, 32);
+        event = Record(user, operation, status);
+        wallet.appendJournalRecord(event);
         break;
         
     case printPublicKeys:
-        wallet.printPublicKey();
+        wallet.printPublicKey(data);
+
+        buffer = "printPublicKeys";
+        buffer.toCharArray(operation, 32);
+        event = Record(user, operation, status);
+        wallet.appendJournalRecord(event);
         break;
         
     case signTransaction:
-        wallet.signTransaction(hash, testpath);
+        wallet.signTransaction(hash, data);
+
+        buffer = "signTransaction";
+        buffer.toCharArray(operation, 32);
+        event = Record(user, operation, status);
+        wallet.appendJournalRecord(event);
         break;
 
     case printJournal:
+        buffer = "printJournal";
+        buffer.toCharArray(operation, 32);
+        event = Record(user, operation, status);
         wallet.appendJournalRecord(event);
+
         wallet.printJournal();
         // wallet.cleanJournal();
         break;  
