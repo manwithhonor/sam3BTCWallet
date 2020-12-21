@@ -4,6 +4,7 @@
 
 #include "Bitcoin.h"
 #include "Hash.h"
+#include "ArduinoJson.h"
 
 #include "./../platform/platform.h"
 
@@ -34,14 +35,23 @@ String getValue(String data, char separator, int index) {
 
 int loopIteration() {
     int oper = 0;
-    String rawCmd  = platform::console::readString();
-    
+    //String rawCmd  = platform::console::readString();
+    //Serial.println("String: " + rawCmd);
+
+    DynamicJsonDocument jsonInput(1024);
+    deserializeJson(jsonInput, Serial);
+    //int intCmd = jsonInput['command'];
+    //String data = jsonInput['data'];
+    serializeJson(jsonInput, Serial);
+
+    //Serial.println("intCmd: " + intCmd);
+    //Serial.println("data: " + data);
+
     // this lines is for parsing strings in COMMAND_DATA format
-    // it's disabled for test purpose
-    
-    String cmd = getValue(rawCmd, '_', 0);
-    String data = getValue(rawCmd, '_', 1);
-    commands intCmd = (commands) cmd.toInt();
+    // it's disabled for test purpose    
+    //String cmd = getValue(rawCmd, '_', 0);
+    //String data = getValue(rawCmd, '_', 1);
+    //commands intCmd = (commands) cmd.toInt();
 
     // commands intCmd = (commands) rawCmd.toInt();
 
@@ -55,13 +65,13 @@ int loopIteration() {
     char status[16] = "Success";
 
 
-
     Record event(user, operation, status);
-    // Record event(user, operation, status);
     
-
+    /*
     switch(intCmd) {
     case generateNewSeed:
+
+
         wallet.generateSeed();
 
         buffer = "generateNewSeed";
@@ -101,5 +111,5 @@ int loopIteration() {
     default: 
         break;
         
-    }
+    }*/
 }
