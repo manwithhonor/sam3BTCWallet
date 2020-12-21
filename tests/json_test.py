@@ -23,7 +23,7 @@ def cmd(request, connection):
     time.sleep(1.7)
     print("Response is:", connection.read_all().decode('ascii'))
 
-cmd('{"command":0,"data":0}', serialcomm) 
+cmd('{"command":228,"data":245}', serialcomm) 
 
 serialcomm.close()
 print("END OF TEST")

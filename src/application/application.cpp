@@ -34,18 +34,15 @@ String getValue(String data, char separator, int index) {
 }
 
 int loopIteration() {
-    int oper = 0;
-    //String rawCmd  = platform::console::readString();
-    //Serial.println("String: " + rawCmd);
-
+    String rawCmd  = platform::console::readString();
     DynamicJsonDocument jsonInput(1024);
-    deserializeJson(jsonInput, Serial);
-    //int intCmd = jsonInput['command'];
-    //String data = jsonInput['data'];
-    serializeJson(jsonInput, Serial);
+    deserializeJson(jsonInput, rawCmd);
+    // serializeJson(jsonInput, Serial);
 
-    //Serial.println("intCmd: " + intCmd);
-    //Serial.println("data: " + data);
+    String intCmd = jsonInput["command"];
+    String data = jsonInput["data"];
+    Serial.println("intCmd: " + intCmd);
+    Serial.println("data: " + data);
 
     // this lines is for parsing strings in COMMAND_DATA format
     // it's disabled for test purpose    
