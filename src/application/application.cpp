@@ -17,58 +17,38 @@ enum commands {
     printJournal    = 3
 };
 
-String getValue(String data, char separator, int index) {
-    int found = 0;
-    int strIndex[] = {0, -1};
-    int maxIndex = data.length()-1;
-
-    for (int i=0; i<=maxIndex && found<=index; i++) {
-        if (data.charAt(i)==separator || i==maxIndex) {
-            found++;
-            strIndex[0] = strIndex[1]+1;
-            strIndex[1] = (i == maxIndex) ? i+1 : i;
-        }
-    }
-
-    return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
-}
-
 int loopIteration() {
     String rawCmd  = platform::console::readString();
     DynamicJsonDocument jsonInput(1024);
     deserializeJson(jsonInput, rawCmd);
-    // serializeJson(jsonInput, Serial);
 
-    String intCmd = jsonInput["command"];
-    String data = jsonInput["data"];
-    Serial.println("intCmd: " + intCmd);
-    Serial.println("data: " + data);
-
-    // this lines is for parsing strings in COMMAND_DATA format
-    // it's disabled for test purpose    
-    //String cmd = getValue(rawCmd, '_', 0);
-    //String data = getValue(rawCmd, '_', 1);
-    //commands intCmd = (commands) cmd.toInt();
-
-    // commands intCmd = (commands) rawCmd.toInt();
-
+    String cmd = jsonInput["command"];
+    commands intCmd = (commands) cmd.toInt();
+    
     // this is for test purpose only
-    String testpath = "m/0/1";
+    Record event;
+    //int keyAmount = jsonInput["data"][0];
+    //int keyType = jsonInput["data"][1];
+    String hash_str = jsonInput["data"][0];
+    String derivationPath = jsonInput["data"][1];
     String buffer;
-    byte hash[32] = { 0 }; 
-    byte seed[64] = { 0 }; 
     char user[16] =  "Roman";
     char operation[32] = "Test";
     char status[16] = "Success";
+    char hash[64] = { 0 };
 
 
-    Record event(user, operation, status);
+    /*if (cmd.toInt() == 1) {
+        keyAmount = jsonInput["data"]["keyAmount"];
+        keyType = jsonInput["data"]["keyType"];
+    } else if (cmd.toInt() == 2) {
+        hash_str  = jsonInput["data"]["hash"];
+        derivationPath = jsonInput["data"]["derivationPath"];        
+        hash_str.toCharArray(hash, 64);
+    }*/
     
-    /*
     switch(intCmd) {
     case generateNewSeed:
-
-
         wallet.generateSeed();
 
         buffer = "generateNewSeed";
@@ -78,7 +58,7 @@ int loopIteration() {
         break;
         
     case printPublicKeys:
-        wallet.printPublicKey(data);
+        wallet.printPublicKeys(1,0);
 
         buffer = "printPublicKeys";
         buffer.toCharArray(operation, 32);
@@ -87,7 +67,8 @@ int loopIteration() {
         break;
         
     case signTransaction:
-        wallet.signTransaction(hash, data);
+        hash_str.toCharArray(hash, 64);
+        wallet.signTransaction( (byte*) hash, derivationPath);
 
         buffer = "signTransaction";
         buffer.toCharArray(operation, 32);
@@ -108,5 +89,5 @@ int loopIteration() {
     default: 
         break;
         
-    }*/
+    }
 }

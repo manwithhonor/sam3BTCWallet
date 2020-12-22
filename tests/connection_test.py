@@ -24,32 +24,25 @@ def cmd(command, data, connection):
     
     try:
         response = json.loads(response_str)
-        print(response)
-        print('Response is: ', response['data'])
+        print('Response is: ', response)
     except:
         try:
             if response_str.startswith('null'):
                 response_str = response_str.replace('null', '')
             response = json.loads(response_str)
-            print(response['data'])
+            print('Response is: ', response)
         except:
             print("Error occured during parsing of response string. Incoming string was:")
             print(response_str)
     
 
-"""request = dict.fromkeys(['command', 'data'])
-request['command'] = 0
-request['data'] = 0
-print (request)"""
-cmd("0", "0", serialcomm) 
+# Hello, World!
+# SHA256 checksum: dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f
 
-# {"command":0,"data":0}
-
-# cmd("0_0", serialcomm) 
-"""cmd("1_m/0/1", serialcomm)
-cmd("1_m/0/5", serialcomm)
-cmd("2_m/0/1", serialcomm)
-cmd("3_0", serialcomm)"""
+cmd("0", ["",""], serialcomm) 
+cmd("1", ["",""], serialcomm) 
+cmd("2", ["dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f","m/0/1"], serialcomm) 
+cmd("3", ["",""], serialcomm) 
 
 serialcomm.close()
 print("END OF TEST")

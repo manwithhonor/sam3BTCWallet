@@ -31,6 +31,6 @@ public:
     void printJournal();
 
     void generateSeed();
-    void printPublicKey(String derivationPath);
+    void printPublicKeys(int keyAmount, int keyType);
     void signTransaction(byte *hash, String derivationPath);
 };

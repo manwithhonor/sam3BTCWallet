@@ -20,10 +20,13 @@ time.sleep(2)
 
 def cmd(request, connection):
     connection.write(request.encode())
-    time.sleep(1.7)
+    time.sleep(2)
     print("Response is:", connection.read_all().decode('ascii'))
 
-cmd('{"command":228,"data":245}', serialcomm) 
+cmd('{"command":0,"data":["",""]}', serialcomm) 
+cmd('{"command":1,"data":["",""]}', serialcomm) 
+cmd('{"command":2,"data":["dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f","m/0/1"]}', serialcomm) 
+# cmd('{"command":2,"data":{"hash":"dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f","derivationPath":"m/0/1"}}', serialcomm) 
 
 serialcomm.close()
 print("END OF TEST")

@@ -2,6 +2,7 @@
 #include "Hash.h"
 #include "./../bitcoin/Bitcoin.h"
 #include "./../../src/platform/platform.h"
+#include "ArduinoJson.h"
 
 const int journalSize = 1000;
 const int masterKeyLength = 112;
@@ -103,20 +104,21 @@ void Wallet::generateSeed(){
     int seedLen = 0;
     char cc[] = "Bitcoin seed";
     byte seed[seedlen] = { 0 };
+    DynamicJsonDocument jsonOutput(1024);
+
     //srand((unsigned int) time(0)); 
     srand(0); // Set seed for randomizer
 
-    
     for(int i=0 ; i < seedlen; i++){
         sprintf(cStrHex+i, "%x", rand() % 16); // Fill the char buffer
     }
     
     seedLen = sha512Hmac((byte*)cc, strlen(cc), (byte*)cStrHex, strlen(cStrHex), seed);
-    Serial.println("Seed: " + toHex(seed, seedLen));
-
     uint32_t pointer = (journalSize + 1) * sizeof(Record);
     platform::persistent::write(pointer, seed, seedlen);
-    Serial.println("Seed has been written.");
+
+    jsonOutput["text"] = "Seed was created and saved.";
+    serializeJson(jsonOutput, Serial);
 
     
     /*
@@ -142,21 +144,16 @@ HDPrivateKey Wallet::generatePrivateKey() {
     return hd;
 }
 
-void Wallet::printPublicKey(String derivationPath) {
+void Wallet::printPublicKeys(int keyAmount, int keyType) {
     Wallet wallet;
     HDPrivateKey masterkey = wallet.generatePrivateKey();
-    Serial.print("This is master private key: ");
-    Serial.println(masterkey);
-
     HDPublicKey pubKey = masterkey.xpub();
-    Serial.print("This is master public key: ");
-    Serial.println(pubKey);
+    String derivationPath;
 
-    // String derivationPath;
-    // derivationPath = String("m/0/") + i;
-    Serial.print("Path: " + derivationPath + ", ");
-    Serial.print("Address: ");
-    Serial.println(pubKey.derive(derivationPath).address());
+    for(int i=0; i < keyAmount; i++){
+        derivationPath = String("m/") + keyType + String("/") + i;
+        Serial.println(pubKey.derive(derivationPath).address());
+    }
 
 /*
     // get plain adresesses
@@ -179,16 +176,12 @@ void Wallet::printPublicKey(String derivationPath) {
 }
 
 void Wallet::signTransaction(byte *hash, String derivationPath) {
+    DynamicJsonDocument jsonOutput(1024);
     Wallet wallet;
     HDPrivateKey masterkey = wallet.generatePrivateKey();
     PrivateKey privkey = masterkey.derive(derivationPath);
-
-    Serial.print("This is master private key: ");
-    Serial.println(masterkey);
-    Serial.print("This is child private key: ");
-    Serial.println(privkey);
-
     Signature signature = privkey.sign(hash);
-    Serial.print("Signature: ");
-    Serial.println(signature);
+
+    jsonOutput["signature"] = signature.toString();
+    serializeJson(jsonOutput, Serial);
 }
