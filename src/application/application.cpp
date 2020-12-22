@@ -29,6 +29,8 @@ int loopIteration() {
     Record event;
     //int keyAmount = jsonInput["data"][0];
     //int keyType = jsonInput["data"][1];
+    int keyAmount;
+    int keyType;
     String hash_str = jsonInput["data"][0];
     String derivationPath = jsonInput["data"][1];
     String buffer;
@@ -58,7 +60,10 @@ int loopIteration() {
         break;
         
     case printPublicKeys:
-        wallet.printPublicKeys(1,0);
+        // fix later
+        keyAmount =  hash_str.toInt();
+        keyType =  derivationPath.toInt();
+        wallet.printPublicKeys(keyAmount, keyType);
 
         buffer = "printPublicKeys";
         buffer.toCharArray(operation, 32);

@@ -152,6 +152,8 @@ void Wallet::printPublicKeys(int keyAmount, int keyType) {
 
     for(int i=0; i < keyAmount; i++){
         derivationPath = String("m/") + keyType + String("/") + i;
+        Serial.print("Path: " + derivationPath + ", ");
+        Serial.print("Address: ");
         Serial.println(pubKey.derive(derivationPath).address());
     }
 
