@@ -16,7 +16,12 @@ struct Record {
 
 
 class Wallet {
-    uint8_t journalTail=0;
+    uint8_t journalTail = 0;
+    uint8_t seedFlag = 0;
+
+    void writeJoutnalTail(uint8_t journalTail);
+    uint8_t readJoutnalTail();
+
     int readSeed(byte* seed);
     HDPrivateKey generatePrivateKey();
 

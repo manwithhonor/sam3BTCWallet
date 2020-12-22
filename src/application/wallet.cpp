@@ -39,10 +39,15 @@ void Record::print() {
     Serial.println("");
 }
 
-Wallet::Wallet() {}
+Wallet::Wallet() {
+        this->journalTail = readJoutnalTail();
+}
 Wallet::~Wallet() {}
 
 void Wallet::init() {}
+
+void Wallet::writeJoutnalTail(uint8_t journalTail){}
+uint8_t Wallet::readJoutnalTail(){}
 
 void Wallet::appendJournalRecord(Record record) {
     if (this->journalTail < journalSize) {
@@ -51,7 +56,6 @@ void Wallet::appendJournalRecord(Record record) {
         memcpy(buffer, &record, sizeof(record));
         platform::persistent::write(address, buffer, sizeof(record));
         this->journalTail++;
-        // Serial.println("Record has been written!");
     } else {
         Serial.println("Journal is full!");
     }

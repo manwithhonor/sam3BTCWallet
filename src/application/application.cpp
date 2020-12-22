@@ -7,6 +7,7 @@
 #include "ArduinoJson.h"
 
 #include "./../platform/platform.h"
+#include <Regexp.h>
 
 Wallet wallet;
 
@@ -39,6 +40,17 @@ int loopIteration() {
     char status[16] = "Success";
     char hash[64] = { 0 };
 
+    MatchState ms;
+    char charBuf[50];
+    char matchResult;
+
+    
+    // std::string mystr = derivationPath.c_str() ;
+    // regex str_expr ("[mM]/[0-1]/[0-9]+");
+           /* if (regex_match (mystr    , str_expr)){
+            hash_str.toCharArray(hash, 64);
+            wallet.signTransaction( (byte*) hash, derivationPath);
+        }*/
 
     /*if (cmd.toInt() == 1) {
         keyAmount = jsonInput["data"]["keyAmount"];
@@ -60,10 +72,24 @@ int loopIteration() {
         break;
         
     case printPublicKeys:
-        // fix later
-        keyAmount =  hash_str.toInt();
-        keyType =  derivationPath.toInt();
-        wallet.printPublicKeys(keyAmount, keyType);
+        hash_str.toCharArray(charBuf, 50);
+        ms.Target (charBuf);
+        matchResult = ms.Match ("^[1-9]\d*$");
+        if (matchResult > 0){
+            keyAmount =  hash_str.toInt();
+            keyType =  derivationPath.toInt();
+            wallet.printPublicKeys(keyAmount, keyType);
+        }
+        else {
+            Serial.println("ERROR: wrong key amount");
+
+            strcpy(status, "Failed");
+            buffer = "printPublicKeys";
+            buffer.toCharArray(operation, 32);
+            event = Record(user, operation, status);
+            wallet.appendJournalRecord(event);
+            break;
+        }
 
         buffer = "printPublicKeys";
         buffer.toCharArray(operation, 32);
@@ -72,9 +98,25 @@ int loopIteration() {
         break;
         
     case signTransaction:
-        hash_str.toCharArray(hash, 64);
-        wallet.signTransaction( (byte*) hash, derivationPath);
+        derivationPath.toCharArray(charBuf, 50);
+        ms.Target (charBuf);
+        matchResult = ms.Match ("[mM]/[0-1]/[0-9]+");
+        if (matchResult > 0){
+            hash_str.toCharArray(hash, 64);
+            wallet.signTransaction( (byte*) hash, derivationPath);
+        }
+        else {
+            Serial.println("ERROR: wrong derivation path");
 
+            strcpy(status, "Failed");
+            buffer = "signTransaction";
+            buffer.toCharArray(operation, 32);
+            event = Record(user, operation, status);
+            wallet.appendJournalRecord(event);
+            break;
+        }
+
+        
         buffer = "signTransaction";
         buffer.toCharArray(operation, 32);
         event = Record(user, operation, status);
