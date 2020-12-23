@@ -17,7 +17,7 @@ struct Record {
 
 class Wallet {
     uint8_t journalTail = 0;
-    uint8_t seedFlag = 0;
+   
 
     void writeJoutnalTail(uint8_t journalTail);
     uint8_t readJoutnalTail();
@@ -28,8 +28,11 @@ class Wallet {
 public:
     Wallet();
     ~Wallet();
-
+    uint8_t seedFlag = 0;
     void init();
+    
+    void writeSeedFlag(uint8_t journalTail);
+    uint8_t readSeedFlag();
 
     void appendJournalRecord(Record record);
     void cleanJournal();

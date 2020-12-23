@@ -4,6 +4,9 @@
 #include "./../../src/platform/platform.h"
 #include "ArduinoJson.h"
 
+#include "DueFlashStorage.h"
+#include <ctime>
+
 const int journalSize = 1000;
 const int masterKeyLength = 112;
 const int seedlen = 64;
@@ -41,13 +44,41 @@ void Record::print() {
 
 Wallet::Wallet() {
         this->journalTail = readJoutnalTail();
+        this->seedFlag = readSeedFlag();
 }
 Wallet::~Wallet() {}
 
 void Wallet::init() {}
 
-void Wallet::writeJoutnalTail(uint8_t journalTail){}
-uint8_t Wallet::readJoutnalTail(){}
+void Wallet::writeJoutnalTail(uint8_t journalTail){
+    uint32_t pointer = (journalSize + 1) * sizeof(Record);
+    DueFlashStorage dueFlashStorage;
+    //platform::persistent::write(pointer, (byte*) journalTail, sizeof(journalTail));
+    dueFlashStorage.write(pointer, journalTail);
+}
+uint8_t Wallet::readJoutnalTail(){
+    uint8_t journalTail;
+    DueFlashStorage dueFlashStorage;
+    uint32_t pointer = (journalSize + 1)*sizeof(Record);
+    journalTail = dueFlashStorage.read(pointer);   
+    //memcpy(journalTail, b, sizeof(uint8_t));
+    return journalTail; 
+}
+
+void Wallet::writeSeedFlag(uint8_t journalTail){
+    uint32_t pointer = (journalSize + 2) * sizeof(Record);
+    DueFlashStorage dueFlashStorage;
+    //platform::persistent::write(pointer, (byte*) journalTail, sizeof(journalTail));
+    dueFlashStorage.write(pointer, journalTail);
+}
+uint8_t Wallet::readSeedFlag(){
+    uint8_t journalTail;
+    DueFlashStorage dueFlashStorage;
+    uint32_t pointer = (journalSize + 2)*sizeof(Record);
+    journalTail = dueFlashStorage.read(pointer);   
+    //memcpy(journalTail, b, sizeof(uint8_t));
+    return journalTail; 
+}
 
 void Wallet::appendJournalRecord(Record record) {
     if (this->journalTail < journalSize) {
@@ -56,6 +87,7 @@ void Wallet::appendJournalRecord(Record record) {
         memcpy(buffer, &record, sizeof(record));
         platform::persistent::write(address, buffer, sizeof(record));
         this->journalTail++;
+        writeJoutnalTail(this->journalTail);
     } else {
         Serial.println("Journal is full!");
     }
@@ -100,6 +132,7 @@ void Wallet::cleanJournal() {
     }
 
     this->journalTail = 0;
+    writeJoutnalTail(this->journalTail);
     Serial.println("Journal has been cleaned!");
 }
 
@@ -110,16 +143,18 @@ void Wallet::generateSeed(){
     byte seed[seedlen] = { 0 };
     DynamicJsonDocument jsonOutput(1024);
 
-    //srand((unsigned int) time(0)); 
-    srand(0); // Set seed for randomizer
+    srand(this->journalTail); 
+    //srand(0); // Set seed for randomizer
 
     for(int i=0 ; i < seedlen; i++){
         sprintf(cStrHex+i, "%x", rand() % 16); // Fill the char buffer
     }
     
     seedLen = sha512Hmac((byte*)cc, strlen(cc), (byte*)cStrHex, strlen(cStrHex), seed);
-    uint32_t pointer = (journalSize + 1) * sizeof(Record);
+    uint32_t pointer = (journalSize + 3) * sizeof(Record);
     platform::persistent::write(pointer, seed, seedlen);
+    this->seedFlag = 1;
+    writeSeedFlag(1);
 
     jsonOutput["text"] = "Seed was created and saved.";
     serializeJson(jsonOutput, Serial);
@@ -133,7 +168,7 @@ void Wallet::generateSeed(){
 }
 
 int Wallet::readSeed(byte* seed){
-    uint32_t pointer = (journalSize + 1)*sizeof(Record);
+    uint32_t pointer = (journalSize + 3)*sizeof(Record);
     platform::persistent::read(pointer, seed, seedlen);
    
     return 0; 
@@ -160,24 +195,6 @@ void Wallet::printPublicKeys(int keyAmount, int keyType) {
         Serial.print("Address: ");
         Serial.println(pubKey.derive(derivationPath).address());
     }
-
-/*
-    // get plain adresesses
-    for(int i=0; i<20; i++){
-        derivationPath = String("m/0/") + i;
-        Serial.print("Path: " + derivationPath + ", ");
-        Serial.print("Address: ");
-        Serial.println(pubKey.derive(derivationPath).address());
-    }
-
-    // get adresesses for change
-    for(int i=0; i<10; i++){
-        derivationPath = String("m/1/") + i;
-        Serial.print("Path: " + derivationPath + ", ");
-        Serial.print("Address: ");
-        Serial.println(pubKey.derive(derivationPath).address());
-    }
-*/
 
 }
 

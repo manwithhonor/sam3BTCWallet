@@ -75,24 +75,51 @@ def print_journal(serialcomm):
         print(response[1]['text'])
     print()
 
+def clean_journal(serialcomm):
+    print("Sending command: printJournal.")
+    response = cmd("4", ["",""], serialcomm) 
+    if response[0] == 0:
+        print(response[1]['text'])
+    print()
 
-serialcomm = open_connection()
-generate_new_seed(serialcomm)
-get_public_keys(2, 0, serialcomm) # direct income
-get_public_keys(2, 1, serialcomm) # exchange
-get_public_keys(-5, 1, serialcomm)
-get_public_keys(2.5, 1, serialcomm)
-get_public_keys("random string", 1, serialcomm)
-get_public_keys(0, 1, serialcomm)
+def deleteseed(serialcomm):
+    print("Sending command: deleteSeed.")
+    response = cmd("5", ["",""], serialcomm) 
+    if response[0] == 0:
+        print(response[1]['text'])
+    print()
 
+scenario = int(input("Enter number of scenario: "))
 
-# SHA256(Hello, World!): dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f
-sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "m/0/1", serialcomm) # Success
-sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "M", serialcomm)
-sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "256", serialcomm) 
-sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "m//1/0/1", serialcomm)  
-sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "random string", serialcomm)  
+if scenario == 1:
+    serialcomm = open_connection()
+    deleteseed(serialcomm)
+    get_public_keys(2, 0, serialcomm) # direct income
+    print_journal(serialcomm)
+elif scenario == 2:
+    serialcomm = open_connection()
+    generate_new_seed(serialcomm)
+    get_public_keys(-5, 1, serialcomm)
+    get_public_keys(2.5, 1, serialcomm)
+    get_public_keys("random string", 1, serialcomm)
+    get_public_keys(0, 1, serialcomm)
+    print_journal(serialcomm)
+elif scenario == 3:
+    serialcomm = open_connection()
+    deleteseed(serialcomm)
+    sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "m/0/1", serialcomm) 
+    print_journal(serialcomm)
+elif scenario == 4:
+    serialcomm = open_connection()
+    generate_new_seed(serialcomm)
+    sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "M", serialcomm)
+    sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "256", serialcomm) 
+    sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "m//1/0/1", serialcomm)  
+    sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "random string", serialcomm)  
+    print_journal(serialcomm)
+else:
+    print("wrong number")
+    print("END OF TEST")
 
-print_journal(serialcomm)
 serialcomm.close()
 print("END OF TEST")

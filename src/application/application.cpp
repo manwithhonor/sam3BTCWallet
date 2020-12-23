@@ -15,7 +15,9 @@ enum commands {
     generateNewSeed = 0,
     printPublicKeys = 1,
     signTransaction = 2,
-    printJournal    = 3
+    printJournal    = 3,
+    cleanJournal    = 4,
+    deleteSeed      = 5
 };
 
 int loopIteration() {
@@ -72,6 +74,16 @@ int loopIteration() {
         break;
         
     case printPublicKeys:
+        if (wallet.seedFlag == 0) {
+            Serial.println("ERROR: master seed is not found");
+
+            strcpy(status, "Failed");
+            buffer = "printPublicKeys";
+            buffer.toCharArray(operation, 32);
+            event = Record(user, operation, status);
+            wallet.appendJournalRecord(event);
+            break;
+        }
         hash_str.toCharArray(charBuf, 50);
         ms.Target (charBuf);
         matchResult = ms.Match ("^[1-9]\d*$");
@@ -95,9 +107,20 @@ int loopIteration() {
         buffer.toCharArray(operation, 32);
         event = Record(user, operation, status);
         wallet.appendJournalRecord(event);
+        
         break;
         
     case signTransaction:
+        if (wallet.seedFlag == 0) {
+            Serial.println("ERROR: master seed is not found");
+
+            strcpy(status, "Failed");
+            buffer = "signTransaction";
+            buffer.toCharArray(operation, 32);
+            event = Record(user, operation, status);
+            wallet.appendJournalRecord(event);
+            break;
+        }
         derivationPath.toCharArray(charBuf, 50);
         ms.Target (charBuf);
         matchResult = ms.Match ("[mM]/[0-1]/[0-9]+");
@@ -131,6 +154,17 @@ int loopIteration() {
 
         wallet.printJournal();
         // wallet.cleanJournal();
+        break;  
+
+    case cleanJournal:
+        wallet.cleanJournal();
+        break;  
+
+    // This is for test purpose only
+    case deleteSeed:
+        wallet.seedFlag = 0;
+        wallet.writeSeedFlag(0);
+        Serial.println("Seed was deleted!");
         break;  
 
     default: 
