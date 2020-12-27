@@ -17,8 +17,28 @@ enum commands {
     signTransaction = 2,
     printJournal    = 3,
     cleanJournal    = 4,
-    deleteSeed      = 5
+    deleteSeed      = 5,
+    logOverload     = 6
 };
+
+int checkLog(uint8_t journalTail){
+    if (journalTail >= 255){
+        Serial.println("Operation is forbidden, because log is full. Please clear it.");
+        return 1;
+    }
+    return 0;
+}
+
+int checkSeed(uint8_t seedFlag){
+    Record event;
+    if (seedFlag == 0) {
+        Serial.println("ERROR: master seed is not found");
+        event = Record("Roman", "printPublicKeys", "Failed");
+        wallet.appendJournalRecord(event);
+        return 1;
+    }
+    return 0;
+}
 
 int loopIteration() {
     String rawCmd  = platform::console::readString();
@@ -47,6 +67,7 @@ int loopIteration() {
     char matchResult;
 
     
+    
     // std::string mystr = derivationPath.c_str() ;
     // regex str_expr ("[mM]/[0-1]/[0-9]+");
            /* if (regex_match (mystr    , str_expr)){
@@ -65,25 +86,16 @@ int loopIteration() {
     
     switch(intCmd) {
     case generateNewSeed:
+        if (checkLog(wallet.journalTail)) return 1;
         wallet.generateSeed();
-
-        buffer = "generateNewSeed";
-        buffer.toCharArray(operation, 32);
-        event = Record(user, operation, status);
+        event = Record(user, "generateNewSeed", "Success");
         wallet.appendJournalRecord(event);
         break;
         
     case printPublicKeys:
-        if (wallet.seedFlag == 0) {
-            Serial.println("ERROR: master seed is not found");
+        if (checkLog(wallet.journalTail)) return 1;
+        if (checkSeed(wallet.seedFlag)) return 1;
 
-            strcpy(status, "Failed");
-            buffer = "printPublicKeys";
-            buffer.toCharArray(operation, 32);
-            event = Record(user, operation, status);
-            wallet.appendJournalRecord(event);
-            break;
-        }
         hash_str.toCharArray(charBuf, 50);
         ms.Target (charBuf);
         matchResult = ms.Match ("^[1-9]\d*$");
@@ -94,33 +106,19 @@ int loopIteration() {
         }
         else {
             Serial.println("ERROR: wrong key amount");
-
-            strcpy(status, "Failed");
-            buffer = "printPublicKeys";
-            buffer.toCharArray(operation, 32);
-            event = Record(user, operation, status);
+            event = Record(user, "printPublicKeys", "Failed");
             wallet.appendJournalRecord(event);
             break;
         }
 
-        buffer = "printPublicKeys";
-        buffer.toCharArray(operation, 32);
-        event = Record(user, operation, status);
-        wallet.appendJournalRecord(event);
-        
+        event = Record(user, "printPublicKeys", "Success");
+        wallet.appendJournalRecord(event);        
         break;
         
     case signTransaction:
-        if (wallet.seedFlag == 0) {
-            Serial.println("ERROR: master seed is not found");
+        if (checkLog(wallet.journalTail)) return 1;
+        if (checkSeed(wallet.seedFlag)) return 1;
 
-            strcpy(status, "Failed");
-            buffer = "signTransaction";
-            buffer.toCharArray(operation, 32);
-            event = Record(user, operation, status);
-            wallet.appendJournalRecord(event);
-            break;
-        }
         derivationPath.toCharArray(charBuf, 50);
         ms.Target (charBuf);
         matchResult = ms.Match ("[mM]/[0-1]/[0-9]+");
@@ -130,30 +128,19 @@ int loopIteration() {
         }
         else {
             Serial.println("ERROR: wrong derivation path");
-
-            strcpy(status, "Failed");
-            buffer = "signTransaction";
-            buffer.toCharArray(operation, 32);
-            event = Record(user, operation, status);
+            event = Record(user, "signTransaction", "Failed");
             wallet.appendJournalRecord(event);
             break;
         }
 
-        
-        buffer = "signTransaction";
-        buffer.toCharArray(operation, 32);
-        event = Record(user, operation, status);
+        event = Record(user, "signTransaction", "Success");
         wallet.appendJournalRecord(event);
         break;
 
     case printJournal:
-        buffer = "printJournal";
-        buffer.toCharArray(operation, 32);
-        event = Record(user, operation, status);
-        wallet.appendJournalRecord(event);
-
         wallet.printJournal();
-        // wallet.cleanJournal();
+        event = Record(user, "printJournal", "Success");
+        wallet.appendJournalRecord(event);
         break;  
 
     case cleanJournal:
@@ -166,6 +153,15 @@ int loopIteration() {
         wallet.writeSeedFlag(0);
         Serial.println("Seed was deleted!");
         break;  
+    
+    case logOverload:
+        wallet.journalTail = 255;
+        wallet.writeJoutnalTail(255);
+
+        if (checkLog(wallet.journalTail)) return 1;
+
+        break;
+
 
     default: 
         break;

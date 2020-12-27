@@ -2,6 +2,16 @@ import serial
 import time
 import json
 
+def time_decorator(fn):
+    def wrapped(*args, **kwargs):
+        start_time = time.time()
+        res = fn(*args, **kwargs)
+        delta = time.time() - start_time - 2
+        print("Execution time of the function is {:.3f} sec.".format(delta))
+        print()
+        return res
+    return wrapped
+
 def open_connection():
     print("Connecting to microcontroller...")
     try:
@@ -31,95 +41,98 @@ def get_response(connection):
 def parse_response(response_str):
     try:
         response = json.loads(response_str)
-        return [0, response]
-        #print('Response is: ', response)
+        # print(response['response'])
+        return response['response']
     except:
-        # print("Error occured during parsing of response string. Incoming string was:")
-        print(response_str)
-        return [1, response_str]
+        # print(response_str)
+        return response_str
 
-def cmd(command, data, connection):
+
+@time_decorator
+def cmd(command, data, connection, func_name):
+    print("Sending command: {}.".format(func_name))
     send_request(command, data, connection)
     time.sleep(2)    
     response_str = get_response(connection)
     response = parse_response(response_str)
+    # print(response)
     return response
 
 # API
 def generate_new_seed(serialcomm):
-    print("Sending command: generateNewSeed.")
-    response = cmd("0", ["",""], serialcomm) 
-    if response[0] == 0:
-        print(response[1]['text'])
-    print()
+    response = cmd("0", ["",""], serialcomm, "generateNewSeed")
+    print(response)
     
-
 def get_public_keys(keyAmount, keyType, serialcomm):
-    print("Sending command: getPublicKeys.")
-    response = cmd("1", [keyAmount, keyType], serialcomm)
-    if response[0] == 0:
-        print(response[1]['text'])
-    print()
+    response = cmd("1", [keyAmount, keyType], serialcomm, "getPublicKeys")
+    print(response)
 
 def sign_transaction(hash, derivationPath, serialcomm):
-    print("Sending command: signTransaction.")
-    response = cmd("2", [hash, derivationPath], serialcomm) 
-    if response[0] == 0:
-        print("Siganture: ", response[1]['signature'])
-    print()
+    response = cmd("2", [hash, derivationPath], serialcomm, "signTransaction") 
+    print(response)
 
 def print_journal(serialcomm):
-    print("Sending command: printJournal.")
-    response = cmd("3", ["",""], serialcomm) 
-    if response[0] == 0:
-        print(response[1]['text'])
-    print()
+    response = cmd("3", ["",""], serialcomm, "printJournal") 
+    return response
 
 def clean_journal(serialcomm):
-    print("Sending command: printJournal.")
-    response = cmd("4", ["",""], serialcomm) 
-    if response[0] == 0:
-        print(response[1]['text'])
-    print()
+    response = cmd("4", ["",""], serialcomm, "cleanJournal")
+    print(response)
 
-def deleteseed(serialcomm):
-    print("Sending command: deleteSeed.")
-    response = cmd("5", ["",""], serialcomm) 
-    if response[0] == 0:
-        print(response[1]['text'])
-    print()
+def deleteSeed(serialcomm):
+    response = cmd("5", ["",""], serialcomm, "deleteSeed") 
+    print(response)
 
-scenario = int(input("Enter number of scenario: "))
+def make_overload(serialcomm):
+    response = cmd("6", ["",""], serialcomm, "makeOverload") 
+    print(response)
 
-if scenario == 1:
-    serialcomm = open_connection()
-    deleteseed(serialcomm)
-    get_public_keys(2, 0, serialcomm) # direct income
-    print_journal(serialcomm)
-elif scenario == 2:
-    serialcomm = open_connection()
-    generate_new_seed(serialcomm)
-    get_public_keys(-5, 1, serialcomm)
-    get_public_keys(2.5, 1, serialcomm)
-    get_public_keys("random string", 1, serialcomm)
-    get_public_keys(0, 1, serialcomm)
-    print_journal(serialcomm)
-elif scenario == 3:
-    serialcomm = open_connection()
-    deleteseed(serialcomm)
-    sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "m/0/1", serialcomm) 
-    print_journal(serialcomm)
-elif scenario == 4:
-    serialcomm = open_connection()
-    generate_new_seed(serialcomm)
-    sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "M", serialcomm)
-    sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "256", serialcomm) 
-    sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "m//1/0/1", serialcomm)  
-    sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "random string", serialcomm)  
-    print_journal(serialcomm)
-else:
-    print("wrong number")
-    print("END OF TEST")
+
+# SHA256(Hello, World!): dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f 
+test_hash = "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"
+test_path = "m/0/1"
+serialcomm = open_connection()
+
+while True:
+    scenario = int(input("Enter number of scenario: "))
+
+    if scenario == 1:
+        deleteSeed(serialcomm)
+        get_public_keys(2, 0, serialcomm) # direct income
+        response = print_journal(serialcomm)        
+        for row in response.split('\n')[-3:-2]:
+            print(row)
+    elif scenario == 2:
+        generate_new_seed(serialcomm)
+        get_public_keys(-5, 1, serialcomm)
+        get_public_keys(2.5, 1, serialcomm)
+        get_public_keys("random string", 1, serialcomm)
+        get_public_keys(0, 1, serialcomm)
+        response = print_journal(serialcomm)        
+        for row in response.split('\n')[-7:-2]:
+            print(row)
+    elif scenario == 3:
+        deleteSeed(serialcomm)
+        sign_transaction(test_hash, test_path, serialcomm) 
+        response = print_journal(serialcomm)        
+        for row in response.split('\n')[-3:-2]:
+            print(row)
+    elif scenario == 4:
+        generate_new_seed(serialcomm)
+        sign_transaction(test_hash, "M", serialcomm)
+        sign_transaction(test_hash, "256", serialcomm) 
+        sign_transaction(test_hash, "m//1/0/1", serialcomm)  
+        sign_transaction(test_hash, "random string", serialcomm)  
+        response = print_journal(serialcomm)        
+        for row in response.split('\n')[-7:-2]:
+            print(row)
+    elif scenario == 5:
+        make_overload(serialcomm)
+        generate_new_seed(serialcomm)
+        get_public_keys(2, 0, serialcomm) # direct income
+        sign_transaction(test_hash, test_path, serialcomm) # Success
+    else:
+        break
 
 serialcomm.close()
 print("END OF TEST")

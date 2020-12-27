@@ -7,9 +7,10 @@
 #include "DueFlashStorage.h"
 #include <ctime>
 
-const int journalSize = 1000;
+const int journalSize = 255;
 const int masterKeyLength = 112;
 const int seedlen = 64;
+const byte magic_number[64] = "3045022100ae7a1f1cec2299e77e7a9";
 
 Record::Record() {}
 
@@ -43,15 +44,39 @@ void Record::print() {
 }
 
 Wallet::Wallet() {
-        this->journalTail = readJoutnalTail();
-        this->seedFlag = readSeedFlag();
+        byte magic[seedlen] = { 0 };
+        readMagic(magic);
+        if  (strcmp( (const char*) magic, (const char*) magic_number) == 0) {
+            this->journalTail = readJoutnalTail();
+            this->seedFlag = readSeedFlag();
+        }
+        else {
+            this->journalTail = 0;
+            this->seedFlag = 0;
+            writeJoutnalTail(this->journalTail);
+            writeSeedFlag(this->seedFlag);
+            writeMagic( (byte*) magic_number);
+        }
 }
 Wallet::~Wallet() {}
 
 void Wallet::init() {}
 
-void Wallet::writeJoutnalTail(uint8_t journalTail){
+void Wallet::writeMagic(byte* magic){
     uint32_t pointer = (journalSize + 1) * sizeof(Record);
+    DueFlashStorage dueFlashStorage;
+    //platform::persistent::write(pointer, (byte*) journalTail, sizeof(journalTail));
+    dueFlashStorage.write(pointer, magic, seedlen);
+}
+int Wallet::readMagic(byte* magic){
+    uint32_t pointer = (journalSize + 1)*sizeof(Record);
+    platform::persistent::read(pointer, magic, seedlen);
+   
+    return 0; 
+}
+
+void Wallet::writeJoutnalTail(uint8_t journalTail){
+    uint32_t pointer = (journalSize + 2) * sizeof(Record);
     DueFlashStorage dueFlashStorage;
     //platform::persistent::write(pointer, (byte*) journalTail, sizeof(journalTail));
     dueFlashStorage.write(pointer, journalTail);
@@ -59,14 +84,14 @@ void Wallet::writeJoutnalTail(uint8_t journalTail){
 uint8_t Wallet::readJoutnalTail(){
     uint8_t journalTail;
     DueFlashStorage dueFlashStorage;
-    uint32_t pointer = (journalSize + 1)*sizeof(Record);
+    uint32_t pointer = (journalSize + 2)*sizeof(Record);
     journalTail = dueFlashStorage.read(pointer);   
     //memcpy(journalTail, b, sizeof(uint8_t));
     return journalTail; 
 }
 
 void Wallet::writeSeedFlag(uint8_t journalTail){
-    uint32_t pointer = (journalSize + 2) * sizeof(Record);
+    uint32_t pointer = (journalSize + 3) * sizeof(Record);
     DueFlashStorage dueFlashStorage;
     //platform::persistent::write(pointer, (byte*) journalTail, sizeof(journalTail));
     dueFlashStorage.write(pointer, journalTail);
@@ -74,7 +99,7 @@ void Wallet::writeSeedFlag(uint8_t journalTail){
 uint8_t Wallet::readSeedFlag(){
     uint8_t journalTail;
     DueFlashStorage dueFlashStorage;
-    uint32_t pointer = (journalSize + 2)*sizeof(Record);
+    uint32_t pointer = (journalSize + 3)*sizeof(Record);
     journalTail = dueFlashStorage.read(pointer);   
     //memcpy(journalTail, b, sizeof(uint8_t));
     return journalTail; 
@@ -112,6 +137,7 @@ void Wallet::printJournal() {
 }
 
 void Wallet::cleanJournal() {
+    Serial.println("Journal has been cleaned!");
     Record flood;
     flood.time = platform::clocks::Time{0, 0, 0, 0, 0, 0};
     char user[16] =  {""};
@@ -126,14 +152,14 @@ void Wallet::cleanJournal() {
     memcpy(buffer, &flood, sizeof(flood));
 
     uint32_t address;
-    for (uint32_t i = 0; i < journalSize; i++) {
+    for (uint32_t i = 0; i < this->journalTail; i++) {
         address = i * sizeof(Record);
         platform::persistent::write(address, buffer, sizeof(flood));
     }
 
     this->journalTail = 0;
     writeJoutnalTail(this->journalTail);
-    Serial.println("Journal has been cleaned!");
+
 }
 
 void Wallet::generateSeed(){
@@ -151,12 +177,12 @@ void Wallet::generateSeed(){
     }
     
     seedLen = sha512Hmac((byte*)cc, strlen(cc), (byte*)cStrHex, strlen(cStrHex), seed);
-    uint32_t pointer = (journalSize + 3) * sizeof(Record);
+    uint32_t pointer = (journalSize + 4) * sizeof(Record);
     platform::persistent::write(pointer, seed, seedlen);
     this->seedFlag = 1;
     writeSeedFlag(1);
 
-    jsonOutput["text"] = "Seed was created and saved.";
+    jsonOutput["response"] = "Seed was created and saved.";
     serializeJson(jsonOutput, Serial);
 
     
@@ -168,7 +194,7 @@ void Wallet::generateSeed(){
 }
 
 int Wallet::readSeed(byte* seed){
-    uint32_t pointer = (journalSize + 3)*sizeof(Record);
+    uint32_t pointer = (journalSize + 4)*sizeof(Record);
     platform::persistent::read(pointer, seed, seedlen);
    
     return 0; 
@@ -205,6 +231,6 @@ void Wallet::signTransaction(byte *hash, String derivationPath) {
     PrivateKey privkey = masterkey.derive(derivationPath);
     Signature signature = privkey.sign(hash);
 
-    jsonOutput["signature"] = signature.toString();
+    jsonOutput["response"] = signature.toString();
     serializeJson(jsonOutput, Serial);
 }

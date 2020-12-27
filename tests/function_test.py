@@ -2,6 +2,15 @@ import serial
 import time
 import json
 
+def time_decorator(fn):
+    def wrapped(*args, **kwargs):
+        start_time = time.time()
+        fn(*args, **kwargs)
+        delta = time.time() - start_time - 2
+        print("Execution time of the function is {:.3f} sec.".format(delta))
+        print()
+    return wrapped
+
 def open_connection():
     print("Connecting to microcontroller...")
     try:
@@ -31,14 +40,16 @@ def get_response(connection):
 def parse_response(response_str):
     try:
         response = json.loads(response_str)
-        return [0, response]
-        #print('Response is: ', response)
+        print(response['response'])
+        return response['response']
     except:
-        # print("Error occured during parsing of response string. Incoming string was:")
         print(response_str)
-        return [1, response_str]
+        return response_str
 
-def cmd(command, data, connection):
+
+@time_decorator
+def cmd(command, data, connection, func_name):
+    print("Sending command: {}.".format(func_name))
     send_request(command, data, connection)
     time.sleep(2)    
     response_str = get_response(connection)
@@ -47,76 +58,79 @@ def cmd(command, data, connection):
 
 # API
 def generate_new_seed(serialcomm):
-    print("Sending command: generateNewSeed.")
-    response = cmd("0", ["",""], serialcomm) 
-    if response[0] == 0:
-        print(response[1]['text'])
-    print()
+    response = cmd("0", ["",""], serialcomm, "generateNewSeed") 
     
-
 def get_public_keys(keyAmount, keyType, serialcomm):
-    print("Sending command: getPublicKeys.")
-    response = cmd("1", [keyAmount, keyType], serialcomm)
-    if response[0] == 0:
-        print(response[1]['text'])
-    print()
+    response = cmd("1", [keyAmount, keyType], serialcomm, "getPublicKeys")
 
 def sign_transaction(hash, derivationPath, serialcomm):
-    print("Sending command: signTransaction.")
-    response = cmd("2", [hash, derivationPath], serialcomm) 
-    if response[0] == 0:
-        print("Siganture: ", response[1]['signature'])
-    print()
+    response = cmd("2", [hash, derivationPath], serialcomm, "signTransaction") 
 
 def print_journal(serialcomm):
-    print("Sending command: printJournal.")
-    response = cmd("3", ["",""], serialcomm) 
-    if response[0] == 0:
-        print(response[1]['text'])
-    print()
+    response = cmd("3", ["",""], serialcomm, "printJournal") 
 
 def clean_journal(serialcomm):
-    print("Sending command: cleanJournal.")
-    response = cmd("4", ["",""], serialcomm) 
-    if response[0] == 0:
-        print(response[1]['text'])
-    print()
+    response = cmd("4", ["",""], serialcomm, "cleanJournal") 
 
-def deleteseed(serialcomm):
-    print("Sending command: printJournal.")
-    response = cmd("5", ["",""], serialcomm) 
-    if response[0] == 0:
-        print(response[1]['text'])
-    print()
+def deleteSeed(serialcomm):
+    response = cmd("5", ["",""], serialcomm, "deleteSeed") 
 
-scenario = int(input("Enter number of scenario: "))
+def make_overload(serialcomm):
+    response = cmd("6", ["",""], serialcomm, "makeOverload") 
 
-if scenario == 1:
-    serialcomm = open_connection()
-    generate_new_seed(serialcomm)
-elif scenario == 2:
-    serialcomm = open_connection()
-    generate_new_seed(serialcomm)
-    get_public_keys(2, 0, serialcomm) # direct income
-elif scenario == 3:
-    serialcomm = open_connection()
-    generate_new_seed(serialcomm)
-    # SHA256(Hello, World!): dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f
-    sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "m/0/1", serialcomm) # Success
-elif scenario == 4:
-    serialcomm = open_connection()
-    print_journal(serialcomm)
-elif scenario == 5:
-    serialcomm = open_connection()
-    generate_new_seed(serialcomm)
-    get_public_keys(2, 0, serialcomm) # direct income
-    sign_transaction("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f", "m/0/1", serialcomm) # Success
-else:
-    print("wrong number")
-    print("END OF TEST")
+
+# SHA256(Hello, World!): dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f 
+test_hash = "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"
+test_path = "m/0/1"
+serialcomm = open_connection()
+
+while True:
+    scenario = int(input("Enter number of scenario: "))
+
+    if scenario == 1:    
+        generate_new_seed(serialcomm)
+    elif scenario == 2:
+        generate_new_seed(serialcomm)
+        get_public_keys(2, 0, serialcomm) 
+    elif scenario == 3:
+        generate_new_seed(serialcomm)
+        sign_transaction(test_hash, test_path, serialcomm) 
+    elif scenario == 4:
+        generate_new_seed(serialcomm)
+        get_public_keys(2, 0, serialcomm) 
+        sign_transaction(test_hash, test_path, serialcomm) 
+    elif scenario == 5:
+        print_journal(serialcomm)
+    elif scenario == 6:
+        clean_journal(serialcomm)
+        time.sleep(1.5)
+        print_journal(serialcomm)
+    else:
+        break
 
 serialcomm.close()
 print("END OF TEST")
 
-# clean_journal(serialcomm)
-# deleteseed(serialcomm)
+
+""" 
+def serial_ports():
+    if sys.platform.startswith('win'):
+        ports = ['COM%s' % (i + 1) for i in range(256)]
+    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+        # this excludes your current terminal "/dev/tty"
+        ports = glob.glob('/dev/tty[A-Za-z]*')
+    elif sys.platform.startswith('darwin'):
+        ports = glob.glob('/dev/tty.*')
+    else:
+        raise EnvironmentError('Unsupported platform')
+
+    result = []
+    for port in ports:
+        try:
+            s = serial.Serial(port)
+            s.close()
+            result.append(port)
+        except (OSError, serial.SerialException):
+            pass
+    return result
+"""

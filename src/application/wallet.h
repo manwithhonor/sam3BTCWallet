@@ -16,11 +16,8 @@ struct Record {
 
 
 class Wallet {
-    uint8_t journalTail = 0;
-   
-
-    void writeJoutnalTail(uint8_t journalTail);
-    uint8_t readJoutnalTail();
+    void writeMagic(byte* magic);
+    int readMagic(byte* magic);
 
     int readSeed(byte* seed);
     HDPrivateKey generatePrivateKey();
@@ -28,9 +25,13 @@ class Wallet {
 public:
     Wallet();
     ~Wallet();
-    uint8_t seedFlag = 0;
     void init();
-    
+
+    uint8_t journalTail = 0;
+    void writeJoutnalTail(uint8_t journalTail);
+    uint8_t readJoutnalTail();
+
+    uint8_t seedFlag = 0;
     void writeSeedFlag(uint8_t journalTail);
     uint8_t readSeedFlag();
 
