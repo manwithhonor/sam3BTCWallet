@@ -90,10 +90,10 @@ while True:
     if scenario == 1:    
         generate_new_seed(serialcomm)
     elif scenario == 2:
-        generate_new_seed(serialcomm)
+        # generate_new_seed(serialcomm)
         get_public_keys(2, 0, serialcomm) 
     elif scenario == 3:
-        generate_new_seed(serialcomm)
+        # generate_new_seed(serialcomm)
         sign_transaction(test_hash, test_path, serialcomm) 
     elif scenario == 4:
         generate_new_seed(serialcomm)

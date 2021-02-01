@@ -1,2 +1,15 @@
 .vscode
 platform/sam3x/build
+__pycache__/
+*/__pycache__/
+*.py[cod]
+*$py.class
+
+.idea
+*.idea
+**/*.idea
+**/.idea
+*.pyc
+**/*.pyc
+**/.pyc
+/*.pyc

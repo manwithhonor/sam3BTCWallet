@@ -22,6 +22,12 @@ Record::Record(char user[16], char operation[32], char status[16]) {
 }
 
 void Record::print() {
+
+    /*DynamicJsonDocument jsonOutput(1024);
+
+    jsonOutput["signature"] = signature.toString();
+    serializeJson(jsonOutput, Serial);*/
+
     Serial.print("Time: ");
     Serial.print(this->time.hours);
     Serial.print(":");
@@ -65,7 +71,6 @@ void Wallet::init() {}
 void Wallet::writeMagic(byte* magic){
     uint32_t pointer = (journalSize + 1) * sizeof(Record);
     DueFlashStorage dueFlashStorage;
-    //platform::persistent::write(pointer, (byte*) journalTail, sizeof(journalTail));
     dueFlashStorage.write(pointer, magic, seedlen);
 }
 int Wallet::readMagic(byte* magic){
@@ -78,7 +83,6 @@ int Wallet::readMagic(byte* magic){
 void Wallet::writeJoutnalTail(uint8_t journalTail){
     uint32_t pointer = (journalSize + 2) * sizeof(Record);
     DueFlashStorage dueFlashStorage;
-    //platform::persistent::write(pointer, (byte*) journalTail, sizeof(journalTail));
     dueFlashStorage.write(pointer, journalTail);
 }
 uint8_t Wallet::readJoutnalTail(){
@@ -86,14 +90,12 @@ uint8_t Wallet::readJoutnalTail(){
     DueFlashStorage dueFlashStorage;
     uint32_t pointer = (journalSize + 2)*sizeof(Record);
     journalTail = dueFlashStorage.read(pointer);   
-    //memcpy(journalTail, b, sizeof(uint8_t));
     return journalTail; 
 }
 
 void Wallet::writeSeedFlag(uint8_t journalTail){
     uint32_t pointer = (journalSize + 3) * sizeof(Record);
     DueFlashStorage dueFlashStorage;
-    //platform::persistent::write(pointer, (byte*) journalTail, sizeof(journalTail));
     dueFlashStorage.write(pointer, journalTail);
 }
 uint8_t Wallet::readSeedFlag(){
@@ -101,11 +103,12 @@ uint8_t Wallet::readSeedFlag(){
     DueFlashStorage dueFlashStorage;
     uint32_t pointer = (journalSize + 3)*sizeof(Record);
     journalTail = dueFlashStorage.read(pointer);   
-    //memcpy(journalTail, b, sizeof(uint8_t));
     return journalTail; 
 }
 
 void Wallet::appendJournalRecord(Record record) {
+    DynamicJsonDocument jsonOutput(1024);
+
     if (this->journalTail < journalSize) {
         uint32_t address = this->journalTail * sizeof(Record);
         byte buffer[sizeof(record)];
@@ -114,30 +117,42 @@ void Wallet::appendJournalRecord(Record record) {
         this->journalTail++;
         writeJoutnalTail(this->journalTail);
     } else {
-        Serial.println("Journal is full!");
+        jsonOutput["Message"] = "Journal is full!";
+        serializeJson(jsonOutput, Serial);
     }
 }
 
 void Wallet::printJournal() {
+    DynamicJsonDocument jsonOutput(1024);
     if (this->journalTail == 0) {
-        Serial.println("Journal is empty!");
+        jsonOutput["Message"] = "Journal is empty!";
+        serializeJson(jsonOutput, Serial);
     } else {
         uint32_t address;
         Record record;
         byte temp[sizeof(Record)];
-        Serial.println("--------------------Begin journal--------------------");
+        DynamicJsonDocument jsonOutput(1024);
+
         for (uint32_t j = 0; j < this->journalTail; j++) {
             address = j*sizeof(Record);
             platform::persistent::read(address, temp, sizeof(Record));
             memcpy(&record, temp, sizeof(Record));
-            record.print();
+
+            jsonOutput["Datetime"][j] = String(record.time.hours) + String(":") + String(record.time.minutes) + String(":")+ String(record.time.seconds) + String(" ") + String(record.time.day) + String(".") + String(record.time.month) + String(".") + String(record.time.year);
+            jsonOutput["User"][j] = String(record.user);
+            jsonOutput["Operation"][j] = String(record.operation);
+            jsonOutput["Status"][j] = String(record.status);
         }
-        Serial.println("--------------------End journal----------------------");
+        serializeJson(jsonOutput, Serial);
     }
 }
 
 void Wallet::cleanJournal() {
-    Serial.println("Journal has been cleaned!");
+    DynamicJsonDocument jsonOutput(1024);
+
+    jsonOutput["Message"] = "Journal has been cleaned!";
+    serializeJson(jsonOutput, Serial);
+
     Record flood;
     flood.time = platform::clocks::Time{0, 0, 0, 0, 0, 0};
     char user[16] =  {""};
@@ -182,7 +197,7 @@ void Wallet::generateSeed(){
     this->seedFlag = 1;
     writeSeedFlag(1);
 
-    jsonOutput["response"] = "Seed was created and saved.";
+    jsonOutput["Message"] = "Seed was created and saved.";
     serializeJson(jsonOutput, Serial);
 
     
@@ -210,6 +225,7 @@ HDPrivateKey Wallet::generatePrivateKey() {
 }
 
 void Wallet::printPublicKeys(int keyAmount, int keyType) {
+    DynamicJsonDocument jsonOutput(1024);
     Wallet wallet;
     HDPrivateKey masterkey = wallet.generatePrivateKey();
     HDPublicKey pubKey = masterkey.xpub();
@@ -217,10 +233,12 @@ void Wallet::printPublicKeys(int keyAmount, int keyType) {
 
     for(int i=0; i < keyAmount; i++){
         derivationPath = String("m/") + keyType + String("/") + i;
-        Serial.print("Path: " + derivationPath + ", ");
-        Serial.print("Address: ");
-        Serial.println(pubKey.derive(derivationPath).address());
-    }
+        
+        jsonOutput["Derivation path"][i] = String(derivationPath);        
+        jsonOutput["Public key"][i] = pubKey.derive(derivationPath).serialize();        
+        // Serial.println(pubKey.derive(derivationPath).serialize()); ///xpub
+    };
+    serializeJson(jsonOutput, Serial);
 
 }
 
@@ -231,6 +249,6 @@ void Wallet::signTransaction(byte *hash, String derivationPath) {
     PrivateKey privkey = masterkey.derive(derivationPath);
     Signature signature = privkey.sign(hash);
 
-    jsonOutput["response"] = signature.toString();
+    jsonOutput["signature"] = signature.toString();
     serializeJson(jsonOutput, Serial);
 }
