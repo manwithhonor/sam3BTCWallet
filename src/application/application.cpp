@@ -22,19 +22,34 @@ enum commands {
 };
 
 int checkLog(uint8_t journalTail){
+    DynamicJsonDocument jsonOutput(1024);
+    
     if (journalTail >= 255){
-        Serial.println("Operation is forbidden, because log is full. Please clear it.");
+        // Serial.println("Operation is forbidden, because log is full. Please clear it.");
+        jsonOutput["Error message"] = "Operation is forbidden, because log is full. Please clear it.";
+        serializeJson(jsonOutput, Serial);
         return 1;
     }
     return 0;
 }
 
-int checkSeed(uint8_t seedFlag){
+int checkSeed(uint8_t seedFlag, int oper){
     Record event;
+    DynamicJsonDocument jsonOutput(1024);
     if (seedFlag == 0) {
-        Serial.println("ERROR: master seed is not found");
-        event = Record("Roman", "printPublicKeys", "Failed");
+        // Serial.println("ERROR: master seed is not found");
+        jsonOutput["Error message"] = "ERROR: master seed is not found";
+        serializeJson(jsonOutput, Serial);
+
+        if (oper == 0) {
+            event = Record("Roman", "printPublicKeys", "Failed");            
+        }
+        else {
+            event = Record("Roman", "signTransaction", "Failed");
+        }
+
         wallet.appendJournalRecord(event);
+
         return 1;
     }
     return 0;
@@ -43,6 +58,9 @@ int checkSeed(uint8_t seedFlag){
 int loopIteration() {
     String rawCmd  = platform::console::readString();
     DynamicJsonDocument jsonInput(1024);
+    DynamicJsonDocument jsonOutput(1024);
+    jsonOutput["Error message"] = "";
+    
     deserializeJson(jsonInput, rawCmd);
 
     String cmd = jsonInput["command"];
@@ -67,23 +85,6 @@ int loopIteration() {
     char matchResult;
 
     
-    
-    // std::string mystr = derivationPath.c_str() ;
-    // regex str_expr ("[mM]/[0-1]/[0-9]+");
-           /* if (regex_match (mystr    , str_expr)){
-            hash_str.toCharArray(hash, 64);
-            wallet.signTransaction( (byte*) hash, derivationPath);
-        }*/
-
-    /*if (cmd.toInt() == 1) {
-        keyAmount = jsonInput["data"]["keyAmount"];
-        keyType = jsonInput["data"]["keyType"];
-    } else if (cmd.toInt() == 2) {
-        hash_str  = jsonInput["data"]["hash"];
-        derivationPath = jsonInput["data"]["derivationPath"];        
-        hash_str.toCharArray(hash, 64);
-    }*/
-    
     switch(intCmd) {
     case generateNewSeed:
         if (checkLog(wallet.journalTail)) return 1;
@@ -94,7 +95,7 @@ int loopIteration() {
         
     case printPublicKeys:
         if (checkLog(wallet.journalTail)) return 1;
-        if (checkSeed(wallet.seedFlag)) return 1;
+        if (checkSeed(wallet.seedFlag, 0)) return 1;
 
         hash_str.toCharArray(charBuf, 50);
         ms.Target (charBuf);
@@ -105,7 +106,10 @@ int loopIteration() {
             wallet.printPublicKeys(keyAmount, keyType);
         }
         else {
-            Serial.println("ERROR: wrong key amount");
+            // Serial.println("ERROR: wrong key amount");
+            jsonOutput["Error message"] = "ERROR: wrong key amount";
+            serializeJson(jsonOutput, Serial);
+
             event = Record(user, "printPublicKeys", "Failed");
             wallet.appendJournalRecord(event);
             break;
@@ -117,7 +121,7 @@ int loopIteration() {
         
     case signTransaction:
         if (checkLog(wallet.journalTail)) return 1;
-        if (checkSeed(wallet.seedFlag)) return 1;
+        if (checkSeed(wallet.seedFlag, 1)) return 1;
 
         derivationPath.toCharArray(charBuf, 50);
         ms.Target (charBuf);
@@ -127,7 +131,10 @@ int loopIteration() {
             wallet.signTransaction( (byte*) hash, derivationPath);
         }
         else {
-            Serial.println("ERROR: wrong derivation path");
+            // Serial.println("ERROR: wrong derivation path");
+            jsonOutput["Error message"] = "ERROR: wrong derivation path";
+            serializeJson(jsonOutput, Serial);
+
             event = Record(user, "signTransaction", "Failed");
             wallet.appendJournalRecord(event);
             break;
@@ -148,7 +155,7 @@ int loopIteration() {
         break;  
 
     // This is for test purpose only
-    case deleteSeed:
+    /*case deleteSeed:
         wallet.seedFlag = 0;
         wallet.writeSeedFlag(0);
         Serial.println("Seed was deleted!");
@@ -160,9 +167,7 @@ int loopIteration() {
 
         if (checkLog(wallet.journalTail)) return 1;
 
-        break;
-
-
+        break;*/
     default: 
         break;
         

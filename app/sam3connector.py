@@ -25,8 +25,10 @@ def send_request(command, data, connection):
     request = dict.fromkeys(['command', 'data'])
     request['command'] = command
     request['data'] = data
-    request_str = json.dumps(request)    
+    request_str = json.dumps(request)
+    connection.flush()  
     connection.write(request_str.encode())
+    connection.flush()
 
 def get_response(connection):
     response_str = connection.read_all().decode('ascii')
@@ -37,14 +39,21 @@ def get_response(connection):
     return response_str
 
 def parse_response(response_str):
+    if response_str.startswith('b'):
+        response_str = response_str[2:].replace('\'', '')
     try:
         response_dict = json.loads(response_str)
         return response_dict
     except:
         return response_str
 
+def cls():
+    os.system('cls' if os.name =='nt' else 'clear')
+
 def cmd(command, data, connection, func_name):
+    # cls()
     print("Sending command: {}.".format(func_name))
+    print()
     send_request(command, data, connection)
     time.sleep(2)
     response_str = get_response(connection)

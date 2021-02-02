@@ -4,7 +4,13 @@ import os
 import json
 from prettytable import PrettyTable
 
+a = """b '{"Derivation path":["m/0/0","m/0/1","m/0/2"],"Public key":["0488b21e0269a5c7fd0000000008b83a014185003a326d99f95f66fe66a211cd57b609e89175b64b0b3fbb663d02bbf5753eacb3b7a3260ea121e1c3058187e106efe663af96dbf80765a7c0af37","0488b21e0269a5c7fd0000000120135605ef7ba332291d473b21c2d61ac7708b2535cd70524e2eed8d764f9bc903a7a2c3a48da1b14bd1a11d0c6a3d41c5d52c7c6ea801dbefdcbd0e1c8a012a5f","0488b21e0269a5c7fd000000027446a053f2bc514c112de8f9e654d3f06506986f4b566bdb9bf2cf189f47ea0e02178a31124d7d60c4b5a4f118e5e88a709e6782d83b38afea3e41cac839023129"]}'"""
 
+
+response_dict = json.loads(a[2:].replace('\'', ''))
+print(response_dict['Derivation path'])
+
+"""
 r = {'Path': 'm/0/1', 'Address': 'xpub6AXdt158Qow5WgwMTBned7tPRsqT42k7KcCRjanvmefknZt2bsXy7GEDtiVTsKHgxoEwbUy9DJwW5j4W73YGQGZaNyUwu1kmqt2hhEExtuL'}
 rj = json.dumps(r) # dict to json
 rr = json.loads(rj) # json to dict
@@ -16,6 +22,9 @@ with open(os.getcwd() + r'/tests/walet.json', 'r') as json_file:
     wallet_data = json.loads(json_file.read()) 
 
 print(wallet_data['Address'])
+"""
+
+
 
 """
 with open(os.getcwd() + r'/tests/transaction.txn', 'r') as transaction_file:

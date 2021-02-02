@@ -10,6 +10,13 @@ import sam3connector
 from hashlib import sha256
 from prettytable import PrettyTable
 
+def isint(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
 title =(
 """
   __           _   _                                     
@@ -20,41 +27,70 @@ title =(
 print(title)
 
 menu = PrettyTable()
-menu.add_column("Command", list(range(1,6)), align="r")
-menu.add_column("Descryption", ['Generate new master seed', 'Get public keys', 'Sign transaction', 'Print journal', 'Clean journal'], align="l")
-
-
-########################################
-# SHA256(Hello, World!): dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f
-with open(os.getcwd() + r'/app/transaction.txn', 'r') as transaction_file:
-    transaction = transaction_file.read()
-
-hash_sum = sha256(transaction.encode('utf-8')).hexdigest()
-# hash_sum_bytes = str.encode(hash_sum)
-# test_hash = "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"
-test_path = "m/0/1"
-########################################
+menu.add_column("Command", [1,2,3,4,5, '', 0], align="r")
+menu.add_column("Descryption", ['Generate new master seed', 'Get public keys', 'Sign transaction', 'Print journal', 'Clean journal', ' ', 'Exit'], align="l")
 
 serialcomm = sam3connector.open_connection()
 
 while True:
-    print(menu)
+    print(menu.get_string(title="Menu"))
     print()
-    scenario = int(input("Enter number of command: "))
 
+    scenario = input("Enter number of command: ")
+    if isint(scenario):
+        scenario = int(scenario)
+    else:
+        print('Invalid command')
+        pass
+    
     if scenario == 1:    
         sam3api.generate_new_seed(serialcomm)
+
     elif scenario == 2:
-        sam3api.get_public_keys(2, 0, serialcomm) 
+        while 1:
+            amount = input("Enter required amount of keys (integer number): ")
+            if isint(amount):
+                break
+            else:
+                print('Wrong number')
+        while 1:
+            key_type = input("Enter required type of keys (0 - for direct pays, 1 - for change): ")
+            if isint(amount):
+                if int(key_type) == 0 or int(key_type) == 1:
+                    break
+                else:
+                    print('Wrong number')
+            else:
+                print('Wrong number')
+
+        sam3api.get_public_keys(amount, key_type, serialcomm) 
     elif scenario == 3:
-        sam3api.sign_transaction(str(hash_sum), test_path, serialcomm) 
+        with open(os.getcwd() + r'/app/transaction.txn', 'r') as transaction_file:
+            transaction = transaction_file.read()
+        hash_sum = sha256(transaction.encode('utf-8')).hexdigest()
+
+        transaction_dict = json.loads(transaction)
+        transaction_table = PrettyTable()
+        transaction_table.add_column("Fields", list(transaction_dict.keys()))
+        transaction_table.add_column("Vaues", list(transaction_dict.values()))
+        print(transaction_table.get_string(title="Transaction"))
+        print()
+
+        der_path = str(input("Enter derivation path in format 'm/0/1': "))
+        sam3api.sign_transaction(str(hash_sum), der_path, serialcomm)
+        
+
     elif scenario == 4:
         sam3api.print_journal(serialcomm)
     elif scenario == 5:
         sam3api.clean_journal(serialcomm)
-    else:        
+    elif scenario == 0:                
         sam3connector.close_connection(serialcomm)
         break
+    else:
+        print('Invalid command')
+        print()
+        pass
 
 end_title = (
 """
@@ -64,26 +100,3 @@ end_title = (
                                   _|             
 """)
 print(end_title)
-
-
-
-
-
-"""
-with open(os.getcwd() + r'/tests/transaction.txn', 'r') as transaction_file:
-    transaction = transaction_file.read()
-
-hash_sum = sha256(transaction.encode('utf-8')).hexdigest()
-hash_sum_bytes = str.encode(hash_sum)
-print(hash_sum)
-
-sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1) 
-vk = sk.get_verifying_key()
-# msg = b"message"
-sig = sk.sign(hash_sum_bytes)
-print(vk.verify(sig, hash_sum_bytes)) # True)
-
-"""
-
-
-
